@@ -615,6 +615,16 @@ async def search(
     
     return results
 
+# Root endpoint
+@api_router.get("/")
+async def root():
+    return {"message": "Insurance Policy Management System API", "version": "1.0.0"}
+
+# Health check
+@api_router.get("/health")
+async def health_check():
+    return {"status": "healthy", "timestamp": datetime.now(timezone.utc).isoformat()}
+
 # Include the router in the main app
 app.include_router(api_router)
 
@@ -637,13 +647,3 @@ logger = logging.getLogger(__name__)
 @app.on_event("shutdown")
 async def shutdown_db_client():
     client.close()
-
-# Root endpoint
-@api_router.get("/")
-async def root():
-    return {"message": "Insurance Policy Management System API", "version": "1.0.0"}
-
-# Health check
-@api_router.get("/health")
-async def health_check():
-    return {"status": "healthy", "timestamp": datetime.now(timezone.utc).isoformat()}
