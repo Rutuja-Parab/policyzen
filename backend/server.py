@@ -12,6 +12,7 @@ from datetime import datetime, date, timezone, timedelta
 from enum import Enum
 import bcrypt
 from decimal import Decimal
+from contextlib import asynccontextmanager
 
 # Load environment variables
 ROOT_DIR = Path(__file__).parent
@@ -616,19 +617,33 @@ async def search(
     return results
 
 # Root endpoint
+# Create your FastAPI app inside lifespan
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # === Startup logic (if any) ===
+    # e.g., connect to DB here if needed
+    # client = connect_to_db()
+    yield
+    # === Shutdown logic ===
+    # Close your DB or client connections safely
+    client.close()
+
+# Initialize app with lifespan
+app = FastAPI(lifespan=lifespan)
+
+# Routers and endpoints
 @api_router.get("/")
 async def root():
     return {"message": "Insurance Policy Management System API", "version": "1.0.0"}
 
-# Health check
 @api_router.get("/health")
 async def health_check():
     return {"status": "healthy", "timestamp": datetime.now(timezone.utc).isoformat()}
 
-# Include the router in the main app
+# Include your API router
 app.include_router(api_router)
 
-# CORS middleware
+# CORS Middleware
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
@@ -637,13 +652,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Configure logging
+# Logging configuration
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
-
-@app.on_event("shutdown")
-async def shutdown_db_client():
-    client.close()
