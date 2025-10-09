@@ -283,7 +283,15 @@ async def register(user_data: UserCreate):
 @api_router.post("/auth/login")
 async def login(email: str = Form(...), password: str = Form(...)):
     user = await db.users.find_one({"email": email}, {"_id": 0})
-    if not user or not bcrypt.checkpw(password.encode('utf-8'), user['password_hash'].encode('utf-8')):
+    
+    if not user:
+        logger.info(f"Login failed for email: {email} - user not found")
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    
+    password_matches = bcrypt.checkpw(password.encode('utf-8'), user['password_hash'].encode('utf-8'))
+    logger.info(f"Login attempt for email: {email}, password match: {password_matches}")
+    
+    if not password_matches:
         raise HTTPException(status_code=401, detail="Invalid credentials")
     
     user = parse_from_mongo(user)
@@ -466,7 +474,13 @@ async def get_policies(
         query["insurance_type"] = insurance_type
     
     policies = await db.policies.find(query, {"_id": 0}).to_list(1000)
-    return [parse_from_mongo(policy) for policy in policies]
+    # Filter to only include documents with required InsurancePolicy fields
+    valid_policies = []
+    for policy in policies:
+        # Check that all required fields exist
+        if all(field in policy for field in ['entity_id', 'policy_number', 'insurance_type', 'provider', 'start_date', 'end_date', 'sum_insured', 'premium_amount', 'created_by']):
+            valid_policies.append(parse_from_mongo(policy))
+    return valid_policies
 
 @api_router.get("/policies/{policy_id}", response_model=InsurancePolicy)
 async def get_policy(policy_id: str):
@@ -502,7 +516,12 @@ async def create_endorsement(endorsement_data: PolicyEndorsementBase):
 async def get_endorsements(policy_id: Optional[str] = Query(None)):
     query = {"policy_id": policy_id} if policy_id else {}
     endorsements = await db.endorsements.find(query, {"_id": 0}).to_list(1000)
-    return [parse_from_mongo(endorsement) for endorsement in endorsements]
+    # Filter to only include documents with required PolicyEndorsement fields
+    valid_endorsements = []
+    for endorsement in endorsements:
+        if all(field in endorsement for field in ['policy_id', 'endorsement_number', 'description', 'effective_date', 'created_by']):
+            valid_endorsements.append(parse_from_mongo(endorsement))
+    return valid_endorsements
 
 # Dashboard stats
 @api_router.get("/dashboard/stats", response_model=DashboardStats)
@@ -617,15 +636,11 @@ async def search(
     return results
 
 # Root endpoint
-# Create your FastAPI app inside lifespan
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # === Startup logic (if any) ===
-    # e.g., connect to DB here if needed
-    # client = connect_to_db()
     yield
     # === Shutdown logic ===
-    # Close your DB or client connections safely
     client.close()
 
 # Initialize app with lifespan

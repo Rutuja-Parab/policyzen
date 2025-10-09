@@ -8,11 +8,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Edit, 
-  Plus, 
-  Search, 
-  Eye, 
+import {
+  Edit,
+  Plus,
+  Search,
+  Eye,
   FileText,
   Calendar,
   User,
@@ -34,9 +34,13 @@ const EndorsementManagement = ({ user }) => {
     endorsement_number: '',
     description: '',
     effective_date: '',
-    created_by: user?.id || 'default-user'
+    created_by: user?.id || 'default-user',
+    document_file: null,
+    document_path: ''
   });
   const [formLoading, setFormLoading] = useState(false);
+  const [editEndorsement, setEditEndorsement] = useState(null);
+  const [showEditDialog, setShowEditDialog] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -49,7 +53,7 @@ const EndorsementManagement = ({ user }) => {
         axios.get(`${API}/endorsements`),
         axios.get(`${API}/policies`)
       ]);
-      
+
       setEndorsements(endorsementsRes.data);
       setPolicies(policiesRes.data);
     } catch (error) {
@@ -63,10 +67,23 @@ const EndorsementManagement = ({ user }) => {
   const handleAddEndorsement = async (e) => {
     e.preventDefault();
     setFormLoading(true);
-    
+
     try {
-      await axios.post(`${API}/endorsements`, newEndorsement);
-      
+      const formData = new FormData();
+      Object.keys(newEndorsement).forEach(key => {
+        if (key !== 'document_file') {
+          formData.append(key, newEndorsement[key]);
+        }
+      });
+
+      if (newEndorsement.document_file) {
+        formData.append('document', newEndorsement.document_file);
+      }
+
+      await axios.post(`${API}/endorsements`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+
       toast.success('Endorsement created successfully');
       setShowAddDialog(false);
       setNewEndorsement({
@@ -74,7 +91,9 @@ const EndorsementManagement = ({ user }) => {
         endorsement_number: '',
         description: '',
         effective_date: '',
-        created_by: user?.id || 'default-user'
+        created_by: user?.id || 'default-user',
+        document_file: null,
+        document_path: ''
       });
       fetchData();
     } catch (error) {
@@ -83,6 +102,51 @@ const EndorsementManagement = ({ user }) => {
       toast.error(errorMessage);
     } finally {
       setFormLoading(false);
+    }
+  };
+
+  const handleUpdateEndorsement = async (e) => {
+    e.preventDefault();
+    setFormLoading(true);
+
+    try {
+      const formData = new FormData();
+      Object.keys(editEndorsement).forEach(key => {
+        if (key !== 'document_file') {
+          formData.append(key, editEndorsement[key]);
+        }
+      });
+
+      if (editEndorsement.document_file) {
+        formData.append('document', editEndorsement.document_file);
+      }
+
+      await axios.put(`${API}/endorsements/${editEndorsement.id}`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+
+      toast.success('Endorsement updated successfully');
+      setShowEditDialog(false);
+      setEditEndorsement(null);
+      fetchData();
+    } catch (error) {
+      console.error('Error updating endorsement:', error);
+      toast.error(error.response?.data?.detail || 'Failed to update endorsement');
+    } finally {
+      setFormLoading(false);
+    }
+  };
+
+  const handleDeleteEndorsement = async (endorsementId) => {
+    if (window.confirm('Are you sure you want to delete this endorsement?')) {
+      try {
+        await axios.delete(`${API}/endorsements/${endorsementId}`);
+        toast.success('Endorsement deleted successfully');
+        fetchData();
+      } catch (error) {
+        console.error('Error deleting endorsement:', error);
+        toast.error('Failed to delete endorsement');
+      }
     }
   };
 
@@ -118,7 +182,7 @@ const EndorsementManagement = ({ user }) => {
           </div>
           <div className="h-10 w-32 bg-gray-200 rounded animate-pulse"></div>
         </div>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[1, 2, 3, 4, 5, 6].map((i) => (
             <Card key={i} className="animate-pulse">
@@ -145,7 +209,7 @@ const EndorsementManagement = ({ user }) => {
           <h1 className="text-3xl font-bold text-gray-900">Endorsement Management</h1>
           <p className="text-gray-600 mt-1">Manage policy modifications and endorsements</p>
         </div>
-        
+
         <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
           <DialogTrigger asChild>
             <Button className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700" data-testid="add-endorsement-btn">
@@ -174,7 +238,7 @@ const EndorsementManagement = ({ user }) => {
                     </SelectContent>
                   </Select>
                 </div>
-                
+
                 <div>
                   <Label htmlFor="endorsement_number">Endorsement Number *</Label>
                   <Input
@@ -186,7 +250,7 @@ const EndorsementManagement = ({ user }) => {
                     data-testid="endorsement-number-input"
                   />
                 </div>
-                
+
                 <div>
                   <Label htmlFor="effective_date">Effective Date *</Label>
                   <Input
@@ -198,7 +262,7 @@ const EndorsementManagement = ({ user }) => {
                     data-testid="endorsement-date-input"
                   />
                 </div>
-                
+
                 <div className="col-span-2">
                   <Label htmlFor="description">Description *</Label>
                   <Textarea
@@ -211,19 +275,36 @@ const EndorsementManagement = ({ user }) => {
                     data-testid="endorsement-description-input"
                   />
                 </div>
+
+                <div className="col-span-2">
+                  <Label htmlFor="document">Endorsement Document</Label>
+                  <Input
+                    id="document"
+                    type="file"
+                    accept=".pdf,.doc,.docx"
+                    onChange={(e) => setNewEndorsement({
+                      ...newEndorsement,
+                      document_file: e.target.files[0]
+                    })}
+                    data-testid="endorsement-document-input"
+                  />
+                  <p className="text-sm text-gray-500 mt-1">
+                    Upload endorsement document (PDF, DOC, DOCX)
+                  </p>
+                </div>
               </div>
-              
+
               <div className="flex justify-end space-x-4">
-                <Button 
-                  type="button" 
-                  variant="outline" 
+                <Button
+                  type="button"
+                  variant="outline"
                   onClick={() => setShowAddDialog(false)}
                   data-testid="cancel-endorsement-btn"
                 >
                   Cancel
                 </Button>
-                <Button 
-                  type="submit" 
+                <Button
+                  type="submit"
                   disabled={formLoading}
                   className="bg-gradient-to-r from-purple-600 to-indigo-600"
                   data-testid="save-endorsement-btn"
@@ -258,7 +339,7 @@ const EndorsementManagement = ({ user }) => {
           <Edit className="w-16 h-16 text-gray-300 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">No endorsements found</h3>
           <p className="text-gray-500 mb-4">
-            {searchTerm 
+            {searchTerm
               ? `No results for "${searchTerm}"`
               : 'Create your first policy endorsement'
             }
@@ -288,36 +369,52 @@ const EndorsementManagement = ({ user }) => {
                       <Edit className="w-5 h-5 text-purple-600" />
                     </div>
                   </div>
-                  
+
                   {/* Description */}
                   <div className="space-y-2">
                     <p className="text-sm text-gray-700 line-clamp-3">
                       {endorsement.description}
                     </p>
                   </div>
-                  
+
                   {/* Metadata */}
                   <div className="space-y-2 pt-2 border-t border-gray-100">
                     <div className="flex items-center space-x-2 text-sm text-gray-600">
                       <Calendar className="w-4 h-4" />
                       <span>Effective: {formatDate(endorsement.effective_date)}</span>
                     </div>
-                    
+
                     <div className="flex items-center space-x-2 text-sm text-gray-600">
                       <User className="w-4 h-4" />
                       <span>Created: {formatDate(endorsement.created_at)}</span>
                     </div>
                   </div>
-                  
+
                   {/* Actions */}
                   <div className="flex space-x-2 pt-2">
                     <Button variant="outline" size="sm" className="flex-1">
                       <Eye className="w-4 h-4 mr-1" />
                       View
                     </Button>
-                    <Button variant="outline" size="sm" className="flex-1">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1"
+                      onClick={() => {
+                        setEditEndorsement(endorsement);
+                        setShowEditDialog(true);
+                      }}
+                    >
                       <Edit className="w-4 h-4 mr-1" />
                       Edit
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1 text-red-600"
+                      onClick={() => handleDeleteEndorsement(endorsement.id)}
+                    >
+                      Delete
                     </Button>
                   </div>
                 </div>
@@ -342,7 +439,7 @@ const EndorsementManagement = ({ user }) => {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card className="border-0 shadow-sm">
           <CardContent className="p-6">
             <div className="flex items-center space-x-3">
@@ -363,7 +460,7 @@ const EndorsementManagement = ({ user }) => {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card className="border-0 shadow-sm">
           <CardContent className="p-6">
             <div className="flex items-center space-x-3">

@@ -7,12 +7,12 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { 
-  FileText, 
-  Plus, 
-  Search, 
-  Edit2, 
-  Eye, 
+import {
+  FileText,
+  Plus,
+  Search,
+  Edit2,
+  Eye,
   Filter,
   Calendar,
   DollarSign,
@@ -44,9 +44,13 @@ const PolicyManagement = ({ user }) => {
     end_date: '',
     sum_insured: '',
     premium_amount: '',
-    created_by: user?.id || 'default-user'
+    created_by: user?.id || 'default-user',
+    document_file: null,
+    document_path: ''
   });
   const [formLoading, setFormLoading] = useState(false);
+  const [editPolicy, setEditPolicy] = useState(null);
+  const [showEditDialog, setShowEditDialog] = useState(false);
 
   const insuranceTypes = [
     { value: 'HEALTH', label: 'Health Insurance', color: 'bg-green-100 text-green-800' },
@@ -74,7 +78,7 @@ const PolicyManagement = ({ user }) => {
         axios.get(`${API}/policies`),
         axios.get(`${API}/entities`)
       ]);
-      
+
       setPolicies(policiesRes.data);
       setEntities(entitiesRes.data);
     } catch (error) {
@@ -88,16 +92,23 @@ const PolicyManagement = ({ user }) => {
   const handleAddPolicy = async (e) => {
     e.preventDefault();
     setFormLoading(true);
-    
+
     try {
-      const policyData = {
-        ...newPolicy,
-        sum_insured: parseFloat(newPolicy.sum_insured),
-        premium_amount: parseFloat(newPolicy.premium_amount)
-      };
-      
-      await axios.post(`${API}/policies`, policyData);
-      
+      const formData = new FormData();
+      Object.keys(newPolicy).forEach(key => {
+        if (key !== 'document_file') {
+          formData.append(key, newPolicy[key]);
+        }
+      });
+
+      if (newPolicy.document_file) {
+        formData.append('document', newPolicy.document_file);
+      }
+
+      await axios.post(`${API}/policies`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+
       toast.success('Policy created successfully');
       setShowAddDialog(false);
       setNewPolicy({
@@ -109,7 +120,9 @@ const PolicyManagement = ({ user }) => {
         end_date: '',
         sum_insured: '',
         premium_amount: '',
-        created_by: user?.id || 'default-user'
+        created_by: user?.id || 'default-user',
+        document_file: null,
+        document_path: ''
       });
       fetchData();
     } catch (error) {
@@ -121,12 +134,57 @@ const PolicyManagement = ({ user }) => {
     }
   };
 
+  const handleUpdatePolicy = async (e) => {
+    e.preventDefault();
+    setFormLoading(true);
+
+    try {
+      const formData = new FormData();
+      Object.keys(editPolicy).forEach(key => {
+        if (key !== 'document_file') {
+          formData.append(key, editPolicy[key]);
+        }
+      });
+
+      if (editPolicy.document_file) {
+        formData.append('document', editPolicy.document_file);
+      }
+
+      await axios.put(`${API}/policies/${editPolicy.id}`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+
+      toast.success('Policy updated successfully');
+      setShowEditDialog(false);
+      setEditPolicy(null);
+      fetchData();
+    } catch (error) {
+      console.error('Error updating policy:', error);
+      toast.error(error.response?.data?.detail || 'Failed to update policy');
+    } finally {
+      setFormLoading(false);
+    }
+  };
+
+  const handleDeletePolicy = async (policyId) => {
+    if (window.confirm('Are you sure you want to delete this policy?')) {
+      try {
+        await axios.delete(`${API}/policies/${policyId}`);
+        toast.success('Policy deleted successfully');
+        fetchData();
+      } catch (error) {
+        console.error('Error deleting policy:', error);
+        toast.error('Failed to delete policy');
+      }
+    }
+  };
+
   const updatePolicyStatus = async (policyId, newStatus) => {
     try {
       await axios.put(`${API}/policies/${policyId}/status`, null, {
         params: { status: newStatus }
       });
-      
+
       toast.success('Policy status updated');
       fetchData();
     } catch (error) {
@@ -138,13 +196,13 @@ const PolicyManagement = ({ user }) => {
   const getStatusBadge = (status) => {
     const statusConfig = policyStatuses.find(s => s.value === status) || policyStatuses[0];
     const Icon = statusConfig.icon;
-    
+
     return (
-      <Badge 
+      <Badge
         className={`${statusConfig.color === 'text-green-600' ? 'bg-green-100 text-green-800' :
-                    statusConfig.color === 'text-red-600' ? 'bg-red-100 text-red-800' :
-                    statusConfig.color === 'text-yellow-600' ? 'bg-yellow-100 text-yellow-800' :
-                    'bg-gray-100 text-gray-800'} border-0`}
+          statusConfig.color === 'text-red-600' ? 'bg-red-100 text-red-800' :
+            statusConfig.color === 'text-yellow-600' ? 'bg-yellow-100 text-yellow-800' :
+              'bg-gray-100 text-gray-800'} border-0`}
       >
         <Icon className="w-3 h-3 mr-1" />
         {statusConfig.label}
@@ -184,13 +242,13 @@ const PolicyManagement = ({ user }) => {
   };
 
   const filteredPolicies = policies.filter(policy => {
-    const matchesSearch = 
+    const matchesSearch =
       policy.policy_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
       policy.provider.toLowerCase().includes(searchTerm.toLowerCase());
-    
+
     const matchesStatus = filterStatus === 'ALL' || policy.status === filterStatus;
     const matchesType = filterType === 'ALL' || policy.insurance_type === filterType;
-    
+
     return matchesSearch && matchesStatus && matchesType;
   });
 
@@ -209,7 +267,7 @@ const PolicyManagement = ({ user }) => {
           </div>
           <div className="h-10 w-32 bg-gray-200 rounded animate-pulse"></div>
         </div>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[1, 2, 3, 4, 5, 6].map((i) => (
             <Card key={i} className="animate-pulse">
@@ -235,7 +293,7 @@ const PolicyManagement = ({ user }) => {
           <h1 className="text-3xl font-bold text-gray-900">Policy Management</h1>
           <p className="text-gray-600 mt-1">Create and manage insurance policies across all entities</p>
         </div>
-        
+
         <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
           <DialogTrigger asChild>
             <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700" data-testid="add-policy-btn">
@@ -264,7 +322,7 @@ const PolicyManagement = ({ user }) => {
                     </SelectContent>
                   </Select>
                 </div>
-                
+
                 <div>
                   <Label htmlFor="policy_number">Policy Number *</Label>
                   <Input
@@ -276,7 +334,7 @@ const PolicyManagement = ({ user }) => {
                     data-testid="policy-number-input"
                   />
                 </div>
-                
+
                 <div>
                   <Label htmlFor="insurance_type">Insurance Type *</Label>
                   <Select value={newPolicy.insurance_type} onValueChange={(value) => setNewPolicy({ ...newPolicy, insurance_type: value })}>
@@ -292,7 +350,7 @@ const PolicyManagement = ({ user }) => {
                     </SelectContent>
                   </Select>
                 </div>
-                
+
                 <div>
                   <Label htmlFor="provider">Provider *</Label>
                   <Input
@@ -304,7 +362,7 @@ const PolicyManagement = ({ user }) => {
                     data-testid="policy-provider-input"
                   />
                 </div>
-                
+
                 <div>
                   <Label htmlFor="start_date">Start Date *</Label>
                   <Input
@@ -316,7 +374,7 @@ const PolicyManagement = ({ user }) => {
                     data-testid="policy-start-date-input"
                   />
                 </div>
-                
+
                 <div>
                   <Label htmlFor="end_date">End Date *</Label>
                   <Input
@@ -328,7 +386,7 @@ const PolicyManagement = ({ user }) => {
                     data-testid="policy-end-date-input"
                   />
                 </div>
-                
+
                 <div>
                   <Label htmlFor="sum_insured">Sum Insured ($) *</Label>
                   <Input
@@ -342,7 +400,7 @@ const PolicyManagement = ({ user }) => {
                     data-testid="policy-sum-insured-input"
                   />
                 </div>
-                
+
                 <div>
                   <Label htmlFor="premium_amount">Premium Amount ($) *</Label>
                   <Input
@@ -356,19 +414,36 @@ const PolicyManagement = ({ user }) => {
                     data-testid="policy-premium-input"
                   />
                 </div>
+
+                <div className="col-span-2">
+                  <Label htmlFor="document">Policy Document</Label>
+                  <Input
+                    id="document"
+                    type="file"
+                    accept=".pdf,.doc,.docx"
+                    onChange={(e) => setNewPolicy({
+                      ...newPolicy,
+                      document_file: e.target.files[0]
+                    })}
+                    data-testid="policy-document-input"
+                  />
+                  <p className="text-sm text-gray-500 mt-1">
+                    Upload policy document (PDF, DOC, DOCX)
+                  </p>
+                </div>
               </div>
-              
+
               <div className="flex justify-end space-x-4">
-                <Button 
-                  type="button" 
-                  variant="outline" 
+                <Button
+                  type="button"
+                  variant="outline"
                   onClick={() => setShowAddDialog(false)}
                   data-testid="cancel-policy-btn"
                 >
                   Cancel
                 </Button>
-                <Button 
-                  type="submit" 
+                <Button
+                  type="submit"
                   disabled={formLoading}
                   className="bg-gradient-to-r from-blue-600 to-indigo-600"
                   data-testid="save-policy-btn"
@@ -395,7 +470,7 @@ const PolicyManagement = ({ user }) => {
                 data-testid="policy-search-input"
               />
             </div>
-            
+
             <Select value={filterStatus} onValueChange={setFilterStatus}>
               <SelectTrigger data-testid="policy-status-filter">
                 <SelectValue placeholder="Filter by status" />
@@ -409,7 +484,7 @@ const PolicyManagement = ({ user }) => {
                 ))}
               </SelectContent>
             </Select>
-            
+
             <Select value={filterType} onValueChange={setFilterType}>
               <SelectTrigger data-testid="policy-type-filter">
                 <SelectValue placeholder="Filter by type" />
@@ -423,7 +498,7 @@ const PolicyManagement = ({ user }) => {
                 ))}
               </SelectContent>
             </Select>
-            
+
             <Button variant="outline" className="justify-start">
               <Filter className="w-4 h-4 mr-2" />
               More Filters
@@ -438,7 +513,7 @@ const PolicyManagement = ({ user }) => {
           <FileText className="w-16 h-16 text-gray-300 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">No policies found</h3>
           <p className="text-gray-500 mb-4">
-            {searchTerm || filterStatus !== 'ALL' || filterType !== 'ALL' 
+            {searchTerm || filterStatus !== 'ALL' || filterType !== 'ALL'
               ? 'Try adjusting your filters'
               : 'Create your first insurance policy'
             }
@@ -452,11 +527,10 @@ const PolicyManagement = ({ user }) => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredPolicies.map((policy) => {
             const isExpiring = isExpiringSoon(policy.end_date);
-            
+
             return (
-              <Card key={policy.id} className={`hover:shadow-lg transition-all duration-200 border-0 bg-gradient-to-br from-white to-gray-50 ${
-                isExpiring ? 'ring-2 ring-yellow-200' : ''
-              }`}>
+              <Card key={policy.id} className={`hover:shadow-lg transition-all duration-200 border-0 bg-gradient-to-br from-white to-gray-50 ${isExpiring ? 'ring-2 ring-yellow-200' : ''
+                }`}>
                 <CardContent className="p-6">
                   <div className="space-y-4">
                     {/* Header */}
@@ -477,33 +551,33 @@ const PolicyManagement = ({ user }) => {
                         )}
                       </div>
                     </div>
-                    
+
                     {/* Policy Details */}
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
                         <span className="text-sm text-gray-600">Type:</span>
                         {getTypeBadge(policy.insurance_type)}
                       </div>
-                      
+
                       <div className="flex items-center justify-between">
                         <span className="text-sm text-gray-600">Provider:</span>
                         <span className="text-sm font-medium">{policy.provider}</span>
                       </div>
-                      
+
                       <div className="flex items-center justify-between">
                         <span className="text-sm text-gray-600">Premium:</span>
                         <span className="text-sm font-bold text-green-600">
                           {formatCurrency(policy.premium_amount)}
                         </span>
                       </div>
-                      
+
                       <div className="flex items-center justify-between">
                         <span className="text-sm text-gray-600">Sum Insured:</span>
                         <span className="text-sm font-medium">
                           {formatCurrency(policy.sum_insured)}
                         </span>
                       </div>
-                      
+
                       <div className="pt-2 border-t border-gray-100">
                         <div className="flex items-center justify-between text-xs text-gray-600">
                           <span>Valid from {formatDate(policy.start_date)}</span>
@@ -511,21 +585,37 @@ const PolicyManagement = ({ user }) => {
                         </div>
                       </div>
                     </div>
-                    
+
                     {/* Actions */}
                     <div className="flex space-x-2 pt-2">
                       <Button variant="outline" size="sm" className="flex-1">
                         <Eye className="w-4 h-4 mr-1" />
                         View
                       </Button>
-                      <Button variant="outline" size="sm" className="flex-1">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1"
+                        onClick={() => {
+                          setEditPolicy(policy);
+                          setShowEditDialog(true);
+                        }}
+                      >
                         <Edit2 className="w-4 h-4 mr-1" />
                         Edit
                       </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="flex-1 text-red-600"
+                        onClick={() => handleDeletePolicy(policy.id)}
+                      >
+                        Delete
+                      </Button>
                       {policy.status === 'ACTIVE' && (
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
+                        <Button
+                          variant="outline"
+                          size="sm"
                           className="text-red-600 hover:text-red-700"
                           onClick={() => updatePolicyStatus(policy.id, 'CANCELLED')}
                         >

@@ -68,7 +68,7 @@ function App() {
     <BrowserRouter>
       <div className="flex h-screen bg-gray-50">
         {/* Sidebar */}
-        <Sidebar 
+        <Sidebar
           isOpen={sidebarOpen}
           onToggle={() => setSidebarOpen(!sidebarOpen)}
           user={user}
@@ -76,9 +76,7 @@ function App() {
         />
 
         {/* Main Content */}
-        <div className={`flex-1 flex flex-col overflow-hidden transition-all duration-300 ${
-          sidebarOpen ? 'ml-64' : 'ml-16'
-        }`}>
+        <div className={`flex-1 flex flex-col overflow-hidden transition-all duration-300 `}>
           {/* Header */}
           <header className="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
             <div className="flex items-center justify-between">
