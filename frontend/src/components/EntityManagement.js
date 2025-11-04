@@ -39,6 +39,10 @@ const EntityManagement = ({ user }) => {
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [newEntity, setNewEntity] = useState({});
   const [formLoading, setFormLoading] = useState(false);
+  const [editEntity, setEditEntity] = useState(null);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [viewEntity, setViewEntity] = useState(null);
+  const [showViewDialog, setShowViewDialog] = useState(false);
 
   useEffect(() => {
     fetchEntities();
@@ -69,19 +73,64 @@ const EntityManagement = ({ user }) => {
     }
   };
 
-  const handleAddEntity = async (e) => {
+      const handleAddEntity = async (e) => {
     e.preventDefault();
     setFormLoading(true);
-    
+
+    let entityData = null;
+
     try {
       let endpoint = '';
-      let entityData = { ...newEntity };
+      entityData = { ...newEntity };
+
+      // Ensure company_id is set - prioritize in this order:
+      // 1. Entity data already has company_id (if valid UUID)
+      // 2. User's company_id
+      // 3. Fetch first company from database
+      // 4. Create a default company if none exists
+      // 5. Generate a valid UUID as last resort
       
-      // Add default company_id if not provided
-      if (!entityData.company_id) {
-        entityData.company_id = 'default-company';
+      // Helper function to validate UUID format
+      const isValidUUID = (str) => {
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        return uuidRegex.test(str);
+      };
+
+      if (!entityData.company_id || entityData.company_id === 'default-company' || !isValidUUID(entityData.company_id)) {
+        if (user?.company_id && isValidUUID(user.company_id)) {
+          entityData.company_id = user.company_id;
+        } else {
+          // Try to fetch first company from database
+          try {
+            const companiesRes = await axios.get(`${API}/companies`);
+            if (companiesRes.data && companiesRes.data.length > 0) {
+              entityData.company_id = companiesRes.data[0].id;
+            } else {
+              // Create a default company if none exists
+              const newCompany = await axios.post(`${API}/companies`, {
+                name: 'Default Company'
+              });
+              entityData.company_id = newCompany.data.id;
+            }
+          } catch (companyError) {
+            console.error('Error fetching/creating company:', companyError);
+            // Generate a valid UUID v4 as last resort
+            entityData.company_id = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+              const r = Math.random() * 16 | 0;
+              const v = c === 'x' ? r : (r & 0x3 | 0x8);
+              return v.toString(16);
+            });
+          }
+        }
       }
       
+      console.log('Final entityData.company_id:', entityData.company_id);
+
+      // Add default status if not provided
+      if (!entityData.status) {
+        entityData.status = 'ACTIVE';
+      }
+
       switch (activeTab) {
         case 'employees':
           endpoint = '/employees';
@@ -98,17 +147,54 @@ const EntityManagement = ({ user }) => {
         default:
           throw new Error('Invalid entity type');
       }
-      
+
       await axios.post(`${API}${endpoint}`, entityData);
-      
+
       toast.success(`${activeTab.slice(0, -1)} added successfully`);
       setShowAddDialog(false);
       setNewEntity({});
       fetchEntities();
     } catch (error) {
       console.error('Error adding entity:', error);
-      const errorMessage = error.response?.data?.detail || 'Failed to add entity';
+      console.error('Error response:', error.response?.data);
+      console.error('Entity data being sent:', entityData);
+      const errorMessage = error.response?.data?.detail || error.response?.data?.message || 'Failed to add entity';                                                                              
       toast.error(errorMessage);
+    } finally {
+      setFormLoading(false);
+    }
+  };
+
+  const handleDeleteEntity = async (entityType, id) => {
+    if (!window.confirm('Are you sure you want to delete this item?')) return;
+    try {
+      const endpoint = `/${entityType}`.replace('employees', 'employees')
+        .replace('students', 'students')
+        .replace('vessels', 'vessels')
+        .replace('vehicles', 'vehicles');
+      await axios.delete(`${API}${endpoint}/${id}`);
+      toast.success('Deleted successfully');
+      fetchEntities();
+    } catch (err) {
+      console.error('Delete error:', err);
+      toast.error('Failed to delete');
+    }
+  };
+
+  const handleEditEntity = async (e) => {
+    e.preventDefault();
+    setFormLoading(true);
+    try {
+      const entityType = activeTab;
+      const endpoint = `/${entityType}`;
+      await axios.put(`${API}${endpoint}/${editEntity.id}`, editEntity);
+      toast.success('Updated successfully');
+      setShowEditDialog(false);
+      setEditEntity(null);
+      fetchEntities();
+    } catch (err) {
+      console.error('Update error:', err);
+      toast.error('Failed to update');
     } finally {
       setFormLoading(false);
     }
@@ -423,7 +509,7 @@ const EntityManagement = ({ user }) => {
                 
                 <div className="space-y-2">
                   <h3 className="font-semibold text-gray-900 text-lg" data-testid={`entity-name-${entity.id}`}>
-                    {entity.name}
+                    {entityType === 'vessels' ? entity.vessel_name : entity.name}
                   </h3>
                   <p className="text-sm text-gray-600">
                     {entityType === 'employees' && `${entity.employee_code} • ${entity.department || 'N/A'}`}
@@ -446,14 +532,17 @@ const EntityManagement = ({ user }) => {
                   )}
                 </div>
                 
-                <div className="flex space-x-2 mt-4 pt-4 border-t border-gray-100">
-                  <Button variant="outline" size="sm" className="flex-1">
+                                <div className="flex space-x-2 mt-4 pt-4 border-t border-gray-100">                                                                             
+                  <Button variant="outline" size="sm" className="flex-1" onClick={() => { setViewEntity(entity); setShowViewDialog(true); }}>                   
                     <Eye className="w-4 h-4 mr-1" />
                     View
                   </Button>
-                  <Button variant="outline" size="sm" className="flex-1">
+                  <Button variant="outline" size="sm" className="flex-1" onClick={() => { setEditEntity(entity); setShowEditDialog(true); }}>                   
                     <Edit2 className="w-4 h-4 mr-1" />
                     Edit
+                  </Button>
+                  <Button variant="outline" size="sm" className="flex-1 text-red-600" onClick={() => handleDeleteEntity(entityType, entity.id)}>
+                    Delete
                   </Button>
                 </div>
               </CardContent>
@@ -530,16 +619,16 @@ const EntityManagement = ({ user }) => {
                 data-testid="entity-search-input"
               />
             </div>
-            <Button variant="outline" size="sm">
-              <Filter className="w-4 h-4 mr-2" />
-              Filter
-            </Button>
           </div>
         </CardContent>
       </Card>
 
       {/* Entity Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+      <Tabs value={activeTab} onValueChange={(value) => {
+        setActiveTab(value);
+        setNewEntity({});
+        setShowAddDialog(false);
+      }} className="space-y-6">
         <TabsList className="grid w-full grid-cols-4 h-auto p-1 bg-gray-100">
           {entityTabs.map((tab) => {
             const Icon = tab.icon;
@@ -568,6 +657,226 @@ const EntityManagement = ({ user }) => {
           </TabsContent>
         ))}
       </Tabs>
+
+      {/* Edit dialog */}
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Edit {activeTab.slice(0, -1)}</DialogTitle>
+          </DialogHeader>
+          {editEntity && (
+            <form onSubmit={handleEditEntity} className="space-y-6">
+              {/* Reuse add form fields by mapping to editEntity state */}
+              {activeTab === 'employees' && (
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="employee_code_edit">Employee Code *</Label>
+                    <Input id="employee_code_edit" value={editEntity.employee_code || ''} onChange={(e) => setEditEntity({ ...editEntity, employee_code: e.target.value })} required />
+                  </div>
+                  <div>
+                    <Label htmlFor="name_edit">Name *</Label>
+                    <Input id="name_edit" value={editEntity.name || ''} onChange={(e) => setEditEntity({ ...editEntity, name: e.target.value })} required />
+                  </div>
+                  <div>
+                    <Label htmlFor="department_edit">Department</Label>
+                    <Input id="department_edit" value={editEntity.department || ''} onChange={(e) => setEditEntity({ ...editEntity, department: e.target.value })} />
+                  </div>
+                  <div>
+                    <Label htmlFor="position_edit">Position</Label>
+                    <Input id="position_edit" value={editEntity.position || ''} onChange={(e) => setEditEntity({ ...editEntity, position: e.target.value })} />
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'students' && (
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="student_id_edit">Student ID *</Label>
+                    <Input id="student_id_edit" value={editEntity.student_id || ''} onChange={(e) => setEditEntity({ ...editEntity, student_id: e.target.value })} required />
+                  </div>
+                  <div>
+                    <Label htmlFor="name_student_edit">Name *</Label>
+                    <Input id="name_student_edit" value={editEntity.name || ''} onChange={(e) => setEditEntity({ ...editEntity, name: e.target.value })} required />
+                  </div>
+                  <div>
+                    <Label htmlFor="course_edit">Course</Label>
+                    <Input id="course_edit" value={editEntity.course || ''} onChange={(e) => setEditEntity({ ...editEntity, course: e.target.value })} />
+                  </div>
+                  <div>
+                    <Label htmlFor="year_of_study_edit">Year of Study</Label>
+                    <Input id="year_of_study_edit" type="number" value={editEntity.year_of_study || ''} onChange={(e) => setEditEntity({ ...editEntity, year_of_study: parseInt(e.target.value) })} />
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'vessels' && (
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="vessel_name_edit">Vessel Name *</Label>
+                    <Input id="vessel_name_edit" value={editEntity.vessel_name || ''} onChange={(e) => setEditEntity({ ...editEntity, vessel_name: e.target.value })} required />
+                  </div>
+                  <div>
+                    <Label htmlFor="imo_number_edit">IMO Number *</Label>
+                    <Input id="imo_number_edit" value={editEntity.imo_number || ''} onChange={(e) => setEditEntity({ ...editEntity, imo_number: e.target.value })} required />
+                  </div>
+                  <div>
+                    <Label htmlFor="vessel_type_edit">Vessel Type</Label>
+                    <Input id="vessel_type_edit" value={editEntity.vessel_type || ''} onChange={(e) => setEditEntity({ ...editEntity, vessel_type: e.target.value })} />
+                  </div>
+                  <div>
+                    <Label htmlFor="flag_edit">Flag</Label>
+                    <Input id="flag_edit" value={editEntity.flag || ''} onChange={(e) => setEditEntity({ ...editEntity, flag: e.target.value })} />
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'vehicles' && (
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="registration_number_edit">Registration Number *</Label>
+                    <Input id="registration_number_edit" value={editEntity.registration_number || ''} onChange={(e) => setEditEntity({ ...editEntity, registration_number: e.target.value })} required />
+                  </div>
+                  <div>
+                    <Label htmlFor="make_edit">Make *</Label>
+                    <Input id="make_edit" value={editEntity.make || ''} onChange={(e) => setEditEntity({ ...editEntity, make: e.target.value })} required />
+                  </div>
+                  <div>
+                    <Label htmlFor="model_edit">Model *</Label>
+                    <Input id="model_edit" value={editEntity.model || ''} onChange={(e) => setEditEntity({ ...editEntity, model: e.target.value })} required />
+                  </div>
+                  <div>
+                    <Label htmlFor="year_edit">Year *</Label>
+                    <Input id="year_edit" type="number" value={editEntity.year || ''} onChange={(e) => setEditEntity({ ...editEntity, year: parseInt(e.target.value) })} required />
+                  </div>
+                </div>
+              )}
+
+              <div className="flex justify-end space-x-4">
+                <Button type="button" variant="outline" onClick={() => setShowEditDialog(false)}>Cancel</Button>
+                <Button type="submit" disabled={formLoading} className="bg-gradient-to-r from-blue-600 to-indigo-600">{formLoading ? 'Saving...' : 'Save Changes'}</Button>
+              </div>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* View Entity Dialog */}
+      <Dialog open={showViewDialog} onOpenChange={setShowViewDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>View {activeTab.slice(0, -1)}</DialogTitle>
+          </DialogHeader>
+          {viewEntity && (
+            <div className="space-y-4">
+              {activeTab === 'employees' && (
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-gray-600">Employee Code</Label>
+                    <p className="font-medium">{viewEntity.employee_code || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <Label className="text-gray-600">Name</Label>
+                    <p className="font-medium">{viewEntity.name || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <Label className="text-gray-600">Department</Label>
+                    <p className="font-medium">{viewEntity.department || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <Label className="text-gray-600">Position</Label>
+                    <p className="font-medium">{viewEntity.position || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <Label className="text-gray-600">Status</Label>
+                    <div className="mt-1">{getStatusBadge(viewEntity.status)}</div>
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'students' && (
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-gray-600">Student ID</Label>
+                    <p className="font-medium">{viewEntity.student_id || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <Label className="text-gray-600">Name</Label>
+                    <p className="font-medium">{viewEntity.name || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <Label className="text-gray-600">Course</Label>
+                    <p className="font-medium">{viewEntity.course || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <Label className="text-gray-600">Year of Study</Label>
+                    <p className="font-medium">{viewEntity.year_of_study || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <Label className="text-gray-600">Status</Label>
+                    <div className="mt-1">{getStatusBadge(viewEntity.status)}</div>
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'vessels' && (
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-gray-600">Vessel Name</Label>
+                    <p className="font-medium">{viewEntity.vessel_name || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <Label className="text-gray-600">IMO Number</Label>
+                    <p className="font-medium">{viewEntity.imo_number || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <Label className="text-gray-600">Vessel Type</Label>
+                    <p className="font-medium">{viewEntity.vessel_type || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <Label className="text-gray-600">Flag</Label>
+                    <p className="font-medium">{viewEntity.flag || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <Label className="text-gray-600">Status</Label>
+                    <div className="mt-1">{getStatusBadge(viewEntity.status)}</div>
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'vehicles' && (
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-gray-600">Registration Number</Label>
+                    <p className="font-medium">{viewEntity.registration_number || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <Label className="text-gray-600">Make</Label>
+                    <p className="font-medium">{viewEntity.make || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <Label className="text-gray-600">Model</Label>
+                    <p className="font-medium">{viewEntity.model || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <Label className="text-gray-600">Year</Label>
+                    <p className="font-medium">{viewEntity.year || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <Label className="text-gray-600">Status</Label>
+                    <div className="mt-1">{getStatusBadge(viewEntity.status)}</div>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex justify-end pt-4">
+                <Button variant="outline" onClick={() => setShowViewDialog(false)}>
+                  Close
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

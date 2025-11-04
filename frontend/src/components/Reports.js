@@ -123,14 +123,48 @@ const Reports = ({ user }) => {
     }).length;
   };
 
-  const getRecentEndorsementsCount = () => {
+    const getRecentEndorsementsCount = () => {
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    
+
     return endorsements.filter(endorsement => {
       const createdDate = new Date(endorsement.created_at);
       return createdDate >= thirtyDaysAgo;
     }).length;
+  };
+
+  const handleExportReport = () => {
+    try {
+      const reportData = {
+        period: reportPeriod,
+        generated_at: new Date().toISOString(),
+        stats: stats,
+        policies: policies.length,
+        entities: entities.length,
+        endorsements: endorsements.length,
+        insurance_type_distribution: getInsuranceTypeDistribution(),
+        premium_by_type: getPremiumByType(),
+        entity_type_distribution: getEntityTypeDistribution(),
+        expiring_policies: getExpiringPoliciesCount(),
+        recent_endorsements: getRecentEndorsementsCount()
+      };
+
+      const dataStr = JSON.stringify(reportData, null, 2);
+      const dataBlob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(dataBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `policyzen-report-${reportPeriod}-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      
+      toast.success('Report exported successfully');
+    } catch (error) {
+      console.error('Export error:', error);
+      toast.error('Failed to export report');
+    }
   };
 
   const insuranceTypeColors = {
@@ -204,7 +238,11 @@ const Reports = ({ user }) => {
             </SelectContent>
           </Select>
           
-          <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700" data-testid="export-report-btn">
+                    <Button 
+            className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+            onClick={handleExportReport}
+            data-testid="export-report-btn"
+          >             
             <Download className="w-4 h-4 mr-2" />
             Export Report
           </Button>

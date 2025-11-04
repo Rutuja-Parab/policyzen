@@ -41,6 +41,8 @@ const EndorsementManagement = ({ user }) => {
   const [formLoading, setFormLoading] = useState(false);
   const [editEndorsement, setEditEndorsement] = useState(null);
   const [showEditDialog, setShowEditDialog] = useState(false);
+  const [viewEndorsement, setViewEndorsement] = useState(null);
+  const [showViewDialog, setShowViewDialog] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -390,9 +392,17 @@ const EndorsementManagement = ({ user }) => {
                     </div>
                   </div>
 
-                  {/* Actions */}
+                                    {/* Actions */}
                   <div className="flex space-x-2 pt-2">
-                    <Button variant="outline" size="sm" className="flex-1">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="flex-1"
+                      onClick={() => {
+                        setViewEndorsement(endorsement);
+                        setShowViewDialog(true);
+                      }}
+                    >     
                       <Eye className="w-4 h-4 mr-1" />
                       View
                     </Button>
@@ -477,6 +487,156 @@ const EndorsementManagement = ({ user }) => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Edit Endorsement Dialog */}
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Edit Endorsement</DialogTitle>
+          </DialogHeader>
+          {editEndorsement && (
+            <form onSubmit={handleUpdateEndorsement} className="space-y-6">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="col-span-2">
+                  <Label htmlFor="edit_policy_id">Policy *</Label>
+                  <Select value={editEndorsement.policy_id} onValueChange={(value) => setEditEndorsement({ ...editEndorsement, policy_id: value })}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select policy" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {policies.map(policy => (
+                        <SelectItem key={policy.id} value={policy.id}>
+                          {policy.policy_number} - {policy.insurance_type}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="edit_endorsement_number">Endorsement Number *</Label>
+                  <Input
+                    id="edit_endorsement_number"
+                    value={editEndorsement.endorsement_number}
+                    onChange={(e) => setEditEndorsement({ ...editEndorsement, endorsement_number: e.target.value })}
+                    placeholder="END001"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="edit_effective_date">Effective Date *</Label>
+                  <Input
+                    id="edit_effective_date"
+                    type="date"
+                    value={editEndorsement.effective_date ? editEndorsement.effective_date.split('T')[0] : ''}
+                    onChange={(e) => setEditEndorsement({ ...editEndorsement, effective_date: e.target.value })}
+                    required
+                  />
+                </div>
+
+                <div className="col-span-2">
+                  <Label htmlFor="edit_description">Description *</Label>
+                  <Textarea
+                    id="edit_description"
+                    value={editEndorsement.description}
+                    onChange={(e) => setEditEndorsement({ ...editEndorsement, description: e.target.value })}
+                    placeholder="Describe the policy modification..."
+                    rows={4}
+                    required
+                  />
+                </div>
+
+                <div className="col-span-2">
+                  <Label htmlFor="edit_document">Endorsement Document</Label>
+                  <Input
+                    id="edit_document"
+                    type="file"
+                    accept=".pdf,.doc,.docx"
+                    onChange={(e) => setEditEndorsement({
+                      ...editEndorsement,
+                      document_file: e.target.files[0]
+                    })}
+                  />
+                  <p className="text-sm text-gray-500 mt-1">
+                    Upload new endorsement document (PDF, DOC, DOCX). Leave empty to keep existing document.
+                  </p>
+                  {editEndorsement.document_path && (
+                    <p className="text-sm text-blue-600 mt-1">
+                      Current document: {editEndorsement.document_path}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowEditDialog(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={formLoading}
+                  className="bg-gradient-to-r from-purple-600 to-indigo-600"
+                >
+                  {formLoading ? 'Updating...' : 'Update Endorsement'}
+                </Button>
+              </div>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* View Endorsement Dialog */}
+      <Dialog open={showViewDialog} onOpenChange={setShowViewDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Endorsement Details</DialogTitle>
+          </DialogHeader>
+          {viewEndorsement && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-gray-600">Endorsement Number</Label>
+                  <p className="font-medium">{viewEndorsement.endorsement_number}</p>
+                </div>
+                <div>
+                  <Label className="text-gray-600">Policy</Label>
+                  <p className="font-medium">{getPolicyNumber(viewEndorsement.policy_id)}</p>
+                </div>
+                <div>
+                  <Label className="text-gray-600">Effective Date</Label>
+                  <p className="font-medium">{formatDate(viewEndorsement.effective_date)}</p>
+                </div>
+                <div>
+                  <Label className="text-gray-600">Created Date</Label>
+                  <p className="font-medium">{formatDate(viewEndorsement.created_at)}</p>
+                </div>
+                <div className="col-span-2">
+                  <Label className="text-gray-600">Description</Label>
+                  <p className="font-medium mt-1">{viewEndorsement.description}</p>
+                </div>
+                {viewEndorsement.document_path && (
+                  <div className="col-span-2">
+                    <Label className="text-gray-600">Document</Label>
+                    <p className="font-medium mt-1 text-blue-600">
+                      {viewEndorsement.document_path}
+                    </p>
+                  </div>
+                )}
+              </div>
+              <div className="flex justify-end pt-4">
+                <Button variant="outline" onClick={() => setShowViewDialog(false)}>
+                  Close
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

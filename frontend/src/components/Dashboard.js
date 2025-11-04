@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
-import { 
-  FileText, 
-  Users, 
-  TrendingUp, 
+import {
+  FileText,
+  Users,
+  TrendingUp,
   AlertCircle,
   Shield,
   DollarSign,
@@ -24,6 +25,7 @@ const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
 const Dashboard = ({ user }) => {
+  const navigate = useNavigate();
   const [stats, setStats] = useState({
     total_policies: 0,
     active_policies: 0,
@@ -267,11 +269,11 @@ const Dashboard = ({ user }) => {
         <Card className="border-0 shadow-lg">
           <CardHeader className="pb-4">
             <CardTitle className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
+                            <div className="flex items-center space-x-2">
                 <Calendar className="w-5 h-5 text-blue-600" />
                 <span>Recent Policies</span>
               </div>
-              <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700">
+              <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700" onClick={() => navigate('/policies')}>                                                                  
                 View All
               </Button>
             </CardTitle>
@@ -296,10 +298,10 @@ const Dashboard = ({ user }) => {
                   </div>
                 ))
               ) : (
-                <div className="text-center py-8">
-                  <FileText className="w-12 h-12 text-gray-300 mx-auto mb-2" />
+                                <div className="text-center py-8">
+                  <FileText className="w-12 h-12 text-gray-300 mx-auto mb-2" /> 
                   <p className="text-gray-500">No policies found</p>
-                  <Button variant="ghost" size="sm" className="mt-2 text-blue-600">
+                  <Button variant="ghost" size="sm" className="mt-2 text-blue-600" onClick={() => navigate('/policies')}>                                                                             
                     Create First Policy
                   </Button>
                 </div>
@@ -318,36 +320,40 @@ const Dashboard = ({ user }) => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Button 
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Button
               className="h-16 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white"
+              onClick={() => navigate('/policies')}
               data-testid="quick-action-new-policy"
             >
               <FileText className="w-5 h-5 mr-2" />
               New Policy
             </Button>
-            
-            <Button 
+
+            <Button
               variant="outline" 
               className="h-16 border-emerald-200 text-emerald-600 hover:bg-emerald-50"
+              onClick={() => navigate('/entities')}
               data-testid="quick-action-add-entity"
             >
               <Users className="w-5 h-5 mr-2" />
               Add Entity
             </Button>
-            
-            <Button 
-              variant="outline" 
+
+            <Button
+              variant="outline"
               className="h-16 border-purple-200 text-purple-600 hover:bg-purple-50"
+              onClick={() => navigate('/endorsements')}
               data-testid="quick-action-create-endorsement"
             >
               <Activity className="w-5 h-5 mr-2" />
               Create Endorsement
             </Button>
-            
-            <Button 
-              variant="outline" 
+
+            <Button
+              variant="outline"
               className="h-16 border-orange-200 text-orange-600 hover:bg-orange-50"
+              onClick={() => navigate('/reports')}
               data-testid="quick-action-view-reports"
             >
               <TrendingUp className="w-5 h-5 mr-2" />

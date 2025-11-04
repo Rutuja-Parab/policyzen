@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
+import { useNavigate } from 'react-router-dom';
 import {
   FileText,
   Plus,
@@ -28,6 +29,7 @@ const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
 const PolicyManagement = ({ user }) => {
+  const navigate = useNavigate();
   const [policies, setPolicies] = useState([]);
   const [entities, setEntities] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -35,6 +37,8 @@ const PolicyManagement = ({ user }) => {
   const [filterStatus, setFilterStatus] = useState('ALL');
   const [filterType, setFilterType] = useState('ALL');
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [viewPolicy, setViewPolicy] = useState(null);
+  const [showViewDialog, setShowViewDialog] = useState(false);
   const [newPolicy, setNewPolicy] = useState({
     entity_id: '',
     policy_number: '',
@@ -45,8 +49,7 @@ const PolicyManagement = ({ user }) => {
     sum_insured: '',
     premium_amount: '',
     created_by: user?.id || 'default-user',
-    document_file: null,
-    document_path: ''
+    status: 'ACTIVE'
   });
   const [formLoading, setFormLoading] = useState(false);
   const [editPolicy, setEditPolicy] = useState(null);
@@ -81,6 +84,16 @@ const PolicyManagement = ({ user }) => {
 
       setPolicies(policiesRes.data);
       setEntities(entitiesRes.data);
+
+      // Fetch expiring policies separately; do not fail the whole load if this is unavailable
+      try {
+        const expiringRes = await axios.get(`${API}/policies/expiring`, { params: { days: 30 } });
+        if (expiringRes.data?.length) {
+          toast.warning(`${expiringRes.data.length} policy(ies) expiring within 30 days`);
+        }
+      } catch {
+        // ignore; optional feature
+      }
     } catch (error) {
       console.error('Error fetching data:', error);
       toast.error('Failed to load policies');
@@ -94,20 +107,13 @@ const PolicyManagement = ({ user }) => {
     setFormLoading(true);
 
     try {
-      const formData = new FormData();
-      Object.keys(newPolicy).forEach(key => {
-        if (key !== 'document_file') {
-          formData.append(key, newPolicy[key]);
-        }
-      });
+      const payload = {
+        ...newPolicy,
+        sum_insured: parseFloat(newPolicy.sum_insured || 0),
+        premium_amount: parseFloat(newPolicy.premium_amount || 0),
+      };
 
-      if (newPolicy.document_file) {
-        formData.append('document', newPolicy.document_file);
-      }
-
-      await axios.post(`${API}/policies`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
+      await axios.post(`${API}/policies`, payload);
 
       toast.success('Policy created successfully');
       setShowAddDialog(false);
@@ -121,8 +127,7 @@ const PolicyManagement = ({ user }) => {
         sum_insured: '',
         premium_amount: '',
         created_by: user?.id || 'default-user',
-        document_file: null,
-        document_path: ''
+        status: 'ACTIVE'
       });
       fetchData();
     } catch (error) {
@@ -139,20 +144,13 @@ const PolicyManagement = ({ user }) => {
     setFormLoading(true);
 
     try {
-      const formData = new FormData();
-      Object.keys(editPolicy).forEach(key => {
-        if (key !== 'document_file') {
-          formData.append(key, editPolicy[key]);
-        }
-      });
+      const payload = {
+        ...editPolicy,
+        sum_insured: parseFloat(editPolicy.sum_insured || 0),
+        premium_amount: parseFloat(editPolicy.premium_amount || 0),
+      };
 
-      if (editPolicy.document_file) {
-        formData.append('document', editPolicy.document_file);
-      }
-
-      await axios.put(`${API}/policies/${editPolicy.id}`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
+      await axios.put(`${API}/policies/${editPolicy.id}`, payload);
 
       toast.success('Policy updated successfully');
       setShowEditDialog(false);
@@ -415,22 +413,7 @@ const PolicyManagement = ({ user }) => {
                   />
                 </div>
 
-                <div className="col-span-2">
-                  <Label htmlFor="document">Policy Document</Label>
-                  <Input
-                    id="document"
-                    type="file"
-                    accept=".pdf,.doc,.docx"
-                    onChange={(e) => setNewPolicy({
-                      ...newPolicy,
-                      document_file: e.target.files[0]
-                    })}
-                    data-testid="policy-document-input"
-                  />
-                  <p className="text-sm text-gray-500 mt-1">
-                    Upload policy document (PDF, DOC, DOCX)
-                  </p>
-                </div>
+                {/* File upload removed; backend now expects JSON only */}
               </div>
 
               <div className="flex justify-end space-x-4">
@@ -498,11 +481,6 @@ const PolicyManagement = ({ user }) => {
                 ))}
               </SelectContent>
             </Select>
-
-            <Button variant="outline" className="justify-start">
-              <Filter className="w-4 h-4 mr-2" />
-              More Filters
-            </Button>
           </div>
         </CardContent>
       </Card>
@@ -586,9 +564,17 @@ const PolicyManagement = ({ user }) => {
                       </div>
                     </div>
 
-                    {/* Actions */}
+                                        {/* Actions */}
                     <div className="flex space-x-2 pt-2">
-                      <Button variant="outline" size="sm" className="flex-1">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="flex-1"
+                        onClick={() => {
+                          setViewPolicy(policy);
+                          setShowViewDialog(true);
+                        }}
+                      >   
                         <Eye className="w-4 h-4 mr-1" />
                         View
                       </Button>
@@ -630,6 +616,211 @@ const PolicyManagement = ({ user }) => {
           })}
         </div>
       )}
+
+      {/* Edit Policy Dialog */}
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Edit Policy</DialogTitle>
+          </DialogHeader>
+          {editPolicy && (
+            <form onSubmit={handleUpdatePolicy} className="space-y-6">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="edit_entity_id">Entity *</Label>
+                  <Select value={editPolicy.entity_id} onValueChange={(value) => setEditPolicy({ ...editPolicy, entity_id: value })}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select entity" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {entities.map(entity => (
+                        <SelectItem key={entity.id} value={entity.id}>
+                          {entity.description}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="edit_policy_number">Policy Number *</Label>
+                  <Input
+                    id="edit_policy_number"
+                    value={editPolicy.policy_number}
+                    onChange={(e) => setEditPolicy({ ...editPolicy, policy_number: e.target.value })}
+                    placeholder="POL001"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="edit_insurance_type">Insurance Type *</Label>
+                  <Select value={editPolicy.insurance_type} onValueChange={(value) => setEditPolicy({ ...editPolicy, insurance_type: value })}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {insuranceTypes.map(type => (
+                        <SelectItem key={type.value} value={type.value}>
+                          {type.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="edit_provider">Provider *</Label>
+                  <Input
+                    id="edit_provider"
+                    value={editPolicy.provider}
+                    onChange={(e) => setEditPolicy({ ...editPolicy, provider: e.target.value })}
+                    placeholder="Insurance Company Name"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="edit_start_date">Start Date *</Label>
+                  <Input
+                    id="edit_start_date"
+                    type="date"
+                    value={editPolicy.start_date ? editPolicy.start_date.split('T')[0] : ''}
+                    onChange={(e) => setEditPolicy({ ...editPolicy, start_date: e.target.value })}
+                    required
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="edit_end_date">End Date *</Label>
+                  <Input
+                    id="edit_end_date"
+                    type="date"
+                    value={editPolicy.end_date ? editPolicy.end_date.split('T')[0] : ''}
+                    onChange={(e) => setEditPolicy({ ...editPolicy, end_date: e.target.value })}
+                    required
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="edit_sum_insured">Sum Insured ($) *</Label>
+                  <Input
+                    id="edit_sum_insured"
+                    type="number"
+                    step="0.01"
+                    value={editPolicy.sum_insured}
+                    onChange={(e) => setEditPolicy({ ...editPolicy, sum_insured: e.target.value })}
+                    placeholder="50000"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="edit_premium_amount">Premium Amount ($) *</Label>
+                  <Input
+                    id="edit_premium_amount"
+                    type="number"
+                    step="0.01"
+                    value={editPolicy.premium_amount}
+                    onChange={(e) => setEditPolicy({ ...editPolicy, premium_amount: e.target.value })}
+                    placeholder="1200"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="edit_status">Status *</Label>
+                  <Select value={editPolicy.status} onValueChange={(value) => setEditPolicy({ ...editPolicy, status: value })}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {policyStatuses.map(status => (
+                        <SelectItem key={status.value} value={status.value}>
+                          {status.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowEditDialog(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={formLoading}
+                  className="bg-gradient-to-r from-blue-600 to-indigo-600"
+                >
+                  {formLoading ? 'Updating...' : 'Update Policy'}
+                </Button>
+              </div>
+            </form>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* View Policy Dialog */}
+      <Dialog open={showViewDialog} onOpenChange={setShowViewDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Policy Details</DialogTitle>
+          </DialogHeader>
+          {viewPolicy && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-gray-600">Policy Number</Label>
+                  <p className="font-medium">{viewPolicy.policy_number}</p>
+                </div>
+                <div>
+                  <Label className="text-gray-600">Status</Label>
+                  <div className="mt-1">{getStatusBadge(viewPolicy.status)}</div>
+                </div>
+                <div>
+                  <Label className="text-gray-600">Insurance Type</Label>
+                  <div className="mt-1">{getTypeBadge(viewPolicy.insurance_type)}</div>
+                </div>
+                <div>
+                  <Label className="text-gray-600">Provider</Label>
+                  <p className="font-medium">{viewPolicy.provider}</p>
+                </div>
+                <div>
+                  <Label className="text-gray-600">Entity</Label>
+                  <p className="font-medium">{getEntityName(viewPolicy.entity_id)}</p>
+                </div>
+                <div>
+                  <Label className="text-gray-600">Sum Insured</Label>
+                  <p className="font-medium">{formatCurrency(viewPolicy.sum_insured)}</p>
+                </div>
+                <div>
+                  <Label className="text-gray-600">Premium Amount</Label>
+                  <p className="font-medium text-green-600">{formatCurrency(viewPolicy.premium_amount)}</p>
+                </div>
+                <div>
+                  <Label className="text-gray-600">Start Date</Label>
+                  <p className="font-medium">{formatDate(viewPolicy.start_date)}</p>
+                </div>
+                <div>
+                  <Label className="text-gray-600">End Date</Label>
+                  <p className="font-medium">{formatDate(viewPolicy.end_date)}</p>
+                </div>
+              </div>
+              <div className="flex justify-end pt-4">
+                <Button variant="outline" onClick={() => setShowViewDialog(false)}>
+                  Close
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

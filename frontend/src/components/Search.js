@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -23,6 +24,7 @@ const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
 const Search = ({ user }) => {
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState({
     policies: [],
@@ -160,7 +162,11 @@ const Search = ({ user }) => {
                   </div>
                 </div>
                 <div className="flex space-x-2 mt-3">
-                  <Button variant="outline" size="sm">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => navigate('/policies')}
+                  >
                     <Eye className="w-4 h-4 mr-1" />
                     View Details
                   </Button>
@@ -229,7 +235,11 @@ const Search = ({ user }) => {
                   )}
                   
                   <div className="flex space-x-2 mt-3">
-                    <Button variant="outline" size="sm">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => navigate('/entities')}
+                    >
                       <Eye className="w-4 h-4 mr-1" />
                       View Details
                     </Button>
@@ -280,7 +290,11 @@ const Search = ({ user }) => {
                   </div>
                 </div>
                 <div className="flex space-x-2 mt-3">
-                  <Button variant="outline" size="sm">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => navigate('/endorsements')}
+                  >
                     <Eye className="w-4 h-4 mr-1" />
                     View Details
                   </Button>
