@@ -5,12 +5,12 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { 
-  BarChart3, 
-  TrendingUp, 
+import {
+  BarChart3,
+  TrendingUp,
   TrendingDown,
-  DollarSign, 
-  FileText, 
+  DollarSign,
+  FileText,
   Users,
   Calendar,
   Download,
@@ -46,14 +46,14 @@ const Reports = ({ user }) => {
   const fetchReportData = async () => {
     try {
       setLoading(true);
-      
+
       const [statsRes, policiesRes, entitiesRes, endorsementsRes] = await Promise.all([
         axios.get(`${API}/dashboard/stats`),
         axios.get(`${API}/policies`),
         axios.get(`${API}/entities`),
         axios.get(`${API}/endorsements`)
       ]);
-      
+
       setStats(statsRes.data);
       setPolicies(policiesRes.data);
       setEntities(entitiesRes.data);
@@ -67,9 +67,9 @@ const Reports = ({ user }) => {
   };
 
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('en-IN', {
       style: 'currency',
-      currency: 'USD'
+      currency: 'INR'
     }).format(amount || 0);
   };
 
@@ -78,7 +78,7 @@ const Reports = ({ user }) => {
       acc[policy.insurance_type] = (acc[policy.insurance_type] || 0) + 1;
       return acc;
     }, {});
-    
+
     return Object.entries(distribution).map(([type, count]) => ({
       type,
       count,
@@ -92,7 +92,7 @@ const Reports = ({ user }) => {
       acc[type] = (acc[type] || 0) + (policy.premium_amount || 0);
       return acc;
     }, {});
-    
+
     return Object.entries(premiumByType).map(([type, amount]) => ({
       type,
       amount,
@@ -105,7 +105,7 @@ const Reports = ({ user }) => {
       acc[entity.type] = (acc[entity.type] || 0) + 1;
       return acc;
     }, {});
-    
+
     return Object.entries(distribution).map(([type, count]) => ({
       type,
       count,
@@ -116,14 +116,14 @@ const Reports = ({ user }) => {
   const getExpiringPoliciesCount = () => {
     const today = new Date();
     const thirtyDaysFromNow = new Date(today.getTime() + (30 * 24 * 60 * 60 * 1000));
-    
+
     return policies.filter(policy => {
       const endDate = new Date(policy.end_date);
       return endDate >= today && endDate <= thirtyDaysFromNow && policy.status === 'ACTIVE';
     }).length;
   };
 
-    const getRecentEndorsementsCount = () => {
+  const getRecentEndorsementsCount = () => {
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
@@ -159,7 +159,7 @@ const Reports = ({ user }) => {
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
-      
+
       toast.success('Report exported successfully');
     } catch (error) {
       console.error('Export error:', error);
@@ -192,7 +192,7 @@ const Reports = ({ user }) => {
             <div className="h-4 w-96 bg-gray-200 rounded animate-pulse"></div>
           </div>
         </div>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {[1, 2, 3, 4].map((i) => (
             <Card key={i} className="animate-pulse">
@@ -223,7 +223,7 @@ const Reports = ({ user }) => {
           <h1 className="text-3xl font-bold text-gray-900">Reports & Analytics</h1>
           <p className="text-gray-600 mt-1">Comprehensive insights into your insurance portfolio</p>
         </div>
-        
+
         <div className="flex items-center space-x-4">
           <Select value={reportPeriod} onValueChange={setReportPeriod}>
             <SelectTrigger className="w-48" data-testid="report-period-select">
@@ -237,12 +237,12 @@ const Reports = ({ user }) => {
               <SelectItem value="current_year">Current Year</SelectItem>
             </SelectContent>
           </Select>
-          
-                    <Button 
+
+          <Button
             className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
             onClick={handleExportReport}
             data-testid="export-report-btn"
-          >             
+          >
             <Download className="w-4 h-4 mr-2" />
             Export Report
           </Button>
@@ -270,7 +270,7 @@ const Reports = ({ user }) => {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card className="border-0 shadow-lg bg-gradient-to-br from-green-50 to-green-100">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -290,7 +290,7 @@ const Reports = ({ user }) => {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card className="border-0 shadow-lg bg-gradient-to-br from-orange-50 to-orange-100">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -310,7 +310,7 @@ const Reports = ({ user }) => {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card className="border-0 shadow-lg bg-gradient-to-br from-purple-50 to-purple-100">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -361,7 +361,7 @@ const Reports = ({ user }) => {
             ))}
           </CardContent>
         </Card>
-        
+
         {/* Premium Distribution */}
         <Card className="border-0 shadow-lg">
           <CardHeader>
@@ -420,7 +420,7 @@ const Reports = ({ user }) => {
             ))}
           </CardContent>
         </Card>
-        
+
         {/* Performance Metrics */}
         <Card className="border-0 shadow-lg">
           <CardHeader>
@@ -437,7 +437,7 @@ const Reports = ({ user }) => {
               </div>
               <Progress value={85} className="h-2" />
             </div>
-            
+
             <div className="space-y-2">
               <div className="flex justify-between">
                 <span className="text-sm text-gray-600">Average Premium per Policy</span>
@@ -446,7 +446,7 @@ const Reports = ({ user }) => {
                 </span>
               </div>
             </div>
-            
+
             <div className="space-y-2">
               <div className="flex justify-between">
                 <span className="text-sm text-gray-600">Entities per Policy</span>
@@ -455,7 +455,7 @@ const Reports = ({ user }) => {
                 </span>
               </div>
             </div>
-            
+
             <div className="space-y-2">
               <div className="flex justify-between">
                 <span className="text-sm text-gray-600">Endorsement Rate</span>
@@ -463,9 +463,9 @@ const Reports = ({ user }) => {
                   {stats.total_policies ? Math.round((endorsements.length / stats.total_policies) * 100) : 0}%
                 </span>
               </div>
-              <Progress 
-                value={stats.total_policies ? (endorsements.length / stats.total_policies) * 100 : 0} 
-                className="h-2" 
+              <Progress
+                value={stats.total_policies ? (endorsements.length / stats.total_policies) * 100 : 0}
+                className="h-2"
               />
             </div>
           </CardContent>

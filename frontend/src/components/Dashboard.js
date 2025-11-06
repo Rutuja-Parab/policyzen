@@ -10,14 +10,14 @@ import {
   TrendingUp,
   AlertCircle,
   Shield,
-  DollarSign,
   Calendar,
   Activity,
   ArrowUpRight,
   ArrowDownRight,
   Clock,
   CheckCircle,
-  XCircle
+  XCircle,
+  IndianRupee
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -44,15 +44,16 @@ const Dashboard = ({ user }) => {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      
+
       // Fetch dashboard stats
       const statsResponse = await axios.get(`${API}/dashboard/stats`);
       setStats(statsResponse.data);
-      
+
+
       // Fetch recent policies
       const policiesResponse = await axios.get(`${API}/policies`);
       setRecentPolicies(policiesResponse.data.slice(0, 5)); // Get first 5 policies
-      
+
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
       toast.error('Failed to load dashboard data');
@@ -62,9 +63,9 @@ const Dashboard = ({ user }) => {
   };
 
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('en-IN', {
       style: 'currency',
-      currency: 'USD'
+      currency: 'INR'
     }).format(amount);
   };
 
@@ -75,10 +76,10 @@ const Dashboard = ({ user }) => {
       'UNDER_REVIEW': { color: 'bg-yellow-100 text-yellow-800', icon: Clock },
       'CANCELLED': { color: 'bg-gray-100 text-gray-800', icon: XCircle }
     };
-    
+
     const config = statusConfig[status] || statusConfig['ACTIVE'];
     const Icon = config.icon;
-    
+
     return (
       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${config.color}`}>
         <Icon className="w-3 h-3 mr-1" />
@@ -108,10 +109,9 @@ const Dashboard = ({ user }) => {
                   ) : trend === 'down' ? (
                     <ArrowDownRight className="w-4 h-4 text-red-500" />
                   ) : null}
-                  <span className={`font-medium ${
-                    trend === 'up' ? 'text-green-600' : 
+                  <span className={`font-medium ${trend === 'up' ? 'text-green-600' :
                     trend === 'down' ? 'text-red-600' : 'text-gray-600'
-                  }`}>
+                    }`}>
                     {subValue} {subLabel}
                   </span>
                 </div>
@@ -122,7 +122,7 @@ const Dashboard = ({ user }) => {
             <Icon className="w-6 h-6 text-white" />
           </div>
         </div>
-        
+
         {/* Animated background gradient */}
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-in-out"></div>
       </CardContent>
@@ -171,12 +171,12 @@ const Dashboard = ({ user }) => {
           value={stats.total_policies}
           icon={FileText}
           color="bg-gradient-to-r from-blue-500 to-blue-600"
-          subValue={stats.active_policies}
+          // subValue={stats.active_policies}
           subLabel="active"
           trend="up"
           loading={loading}
         />
-        
+
         <StatCard
           title="Total Entities"
           value={stats.total_entities}
@@ -184,15 +184,15 @@ const Dashboard = ({ user }) => {
           color="bg-gradient-to-r from-emerald-500 to-emerald-600"
           loading={loading}
         />
-        
+
         <StatCard
           title="Total Premium"
           value={stats.total_premium}
-          icon={DollarSign}
+          icon={IndianRupee}
           color="bg-gradient-to-r from-purple-500 to-purple-600"
           loading={loading}
         />
-        
+
         <StatCard
           title="Active Policies"
           value={stats.active_policies}
@@ -200,7 +200,7 @@ const Dashboard = ({ user }) => {
           color="bg-gradient-to-r from-green-500 to-green-600"
           loading={loading}
         />
-        
+
         <StatCard
           title="Expired Policies"
           value={stats.expired_policies}
@@ -208,7 +208,7 @@ const Dashboard = ({ user }) => {
           color="bg-gradient-to-r from-red-500 to-red-600"
           loading={loading}
         />
-        
+
         <StatCard
           title="Recent Endorsements"
           value={stats.recent_endorsements}
@@ -236,24 +236,24 @@ const Dashboard = ({ user }) => {
                   <span className="font-medium text-gray-700">Active Policies</span>
                   <span className="text-green-600 font-semibold">{stats.active_policies}</span>
                 </div>
-                <Progress 
-                  value={stats.total_policies ? (stats.active_policies / stats.total_policies) * 100 : 0} 
+                <Progress
+                  value={stats.total_policies ? (stats.active_policies / stats.total_policies) * 100 : 0}
                   className="h-2"
                 />
               </div>
-              
+
               <div>
                 <div className="flex justify-between text-sm mb-2">
                   <span className="font-medium text-gray-700">Expired Policies</span>
                   <span className="text-red-600 font-semibold">{stats.expired_policies}</span>
                 </div>
-                <Progress 
-                  value={stats.total_policies ? (stats.expired_policies / stats.total_policies) * 100 : 0} 
+                <Progress
+                  value={stats.total_policies ? (stats.expired_policies / stats.total_policies) * 100 : 0}
                   className="h-2"
                 />
               </div>
             </div>
-            
+
             <div className="pt-4 border-t">
               <div className="text-center">
                 <p className="text-2xl font-bold text-gray-900">
@@ -269,11 +269,11 @@ const Dashboard = ({ user }) => {
         <Card className="border-0 shadow-lg">
           <CardHeader className="pb-4">
             <CardTitle className="flex items-center justify-between">
-                            <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2">
                 <Calendar className="w-5 h-5 text-blue-600" />
                 <span>Recent Policies</span>
               </div>
-              <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700" onClick={() => navigate('/policies')}>                                                                  
+              <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700" onClick={() => navigate('/policies')}>
                 View All
               </Button>
             </CardTitle>
@@ -282,8 +282,8 @@ const Dashboard = ({ user }) => {
             <div className="space-y-4">
               {recentPolicies.length > 0 ? (
                 recentPolicies.map((policy) => (
-                  <div 
-                    key={policy.id} 
+                  <div
+                    key={policy.id}
                     className="flex items-center justify-between p-3 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors duration-200"
                   >
                     <div>
@@ -298,10 +298,10 @@ const Dashboard = ({ user }) => {
                   </div>
                 ))
               ) : (
-                                <div className="text-center py-8">
-                  <FileText className="w-12 h-12 text-gray-300 mx-auto mb-2" /> 
+                <div className="text-center py-8">
+                  <FileText className="w-12 h-12 text-gray-300 mx-auto mb-2" />
                   <p className="text-gray-500">No policies found</p>
-                  <Button variant="ghost" size="sm" className="mt-2 text-blue-600" onClick={() => navigate('/policies')}>                                                                             
+                  <Button variant="ghost" size="sm" className="mt-2 text-blue-600" onClick={() => navigate('/policies')}>
                     Create First Policy
                   </Button>
                 </div>
@@ -320,7 +320,7 @@ const Dashboard = ({ user }) => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <Button
               className="h-16 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white"
               onClick={() => navigate('/policies')}
@@ -331,7 +331,7 @@ const Dashboard = ({ user }) => {
             </Button>
 
             <Button
-              variant="outline" 
+              variant="outline"
               className="h-16 border-emerald-200 text-emerald-600 hover:bg-emerald-50"
               onClick={() => navigate('/entities')}
               data-testid="quick-action-add-entity"
