@@ -53,10 +53,14 @@ class AuditLog extends Model
     }
 
     /**
-     * Get the entity (polymorphic relationship)
+     * Get the entity if it exists (accessor)
      */
-    public function entity()
+    public function getEntityAttribute()
     {
+        if (!$this->entity_type || !$this->entity_id) {
+            return null;
+        }
+
         $modelClass = match($this->entity_type) {
             'Student' => Student::class,
             'Employee' => Employee::class,
@@ -65,10 +69,18 @@ class AuditLog extends Model
             default => null,
         };
 
-        if ($modelClass && $this->entity_id) {
+        if ($modelClass) {
             return $modelClass::find($this->entity_id);
         }
 
         return null;
+    }
+
+    /**
+     * Entity relationship (returns null when no entity)
+     */
+    public function entity()
+    {
+        return $this->entity_type && $this->entity_id ? $this->getEntityAttribute() : null;
     }
 }

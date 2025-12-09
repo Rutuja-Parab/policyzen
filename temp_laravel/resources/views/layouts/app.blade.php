@@ -12,7 +12,7 @@
 <body class="bg-gray-50">
     <div class="min-h-screen flex">
         <!-- Sidebar -->
-        <div class="w-64 bg-white shadow-lg fixed h-full">
+        <div class="w-64 bg-white shadow-lg fixed h-full overflow-y-scroll">
             <div class="p-6">
                 <div class="flex items-center space-x-3 mb-8">
                     <div class="w-10 h-10 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center">
@@ -80,7 +80,7 @@
                     <!-- Master Dropdown -->
                     <div class="relative">
                         @php
-                        $isMasterActive = request()->routeIs('companies.*', 'entities.courses.*');
+                        $isMasterActive = request()->routeIs('companies.*', 'entities.courses.*', 'audit-logs.*');
                         $isMasterOpen = $isMasterActive ? 'block' : 'hidden';
                         @endphp
                         <button onclick="toggleMasterDropdown()" class="w-full flex items-center justify-between px-4 py-3 {{ $isMasterActive ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:bg-gray-50' }} rounded-lg">
@@ -99,31 +99,13 @@
                                 <i class="fas fa-book text-sm"></i>
                                 <span class="text-sm">Courses</span>
                             </a>
+                            <a href="{{ route('audit-logs.index') }}" class="flex items-center space-x-3 px-4 py-2 {{ request()->routeIs('audit-logs.*') ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:bg-gray-50' }} rounded-lg">
+                                <i class="fas fa-clipboard-list text-sm"></i>
+                                <span class="text-sm">Audit Logs</span>
+                            </a>
                         </div>
                     </div>
                 </nav>
-            </div>
-
-            <!-- User info and logout -->
-            <div class="absolute bottom-0 w-64 p-4">
-                <div class="flex items-center space-x-4 mb-4">
-                    <div class="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center">
-                        <span class="text-emerald-600 font-semibold text-sm">
-                            {{ substr(auth()->user()->name, 0, 1) }}
-                        </span>
-                    </div>
-                    <div>
-                        <p class="text-sm font-medium text-gray-900">{{ auth()->user()->name }}</p>
-                        <p class="text-xs text-gray-500">{{ auth()->user()->email }}</p>
-                    </div>
-                </div>
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf
-                    <button type="submit" class="w-full flex items-center space-x-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-lg">
-                        <i class="fas fa-sign-out-alt"></i>
-                        <span>Logout</span>
-                    </button>
-                </form>
             </div>
         </div>
 
@@ -135,11 +117,23 @@
                     <h1 class="text-2xl font-bold text-gray-900">@yield('page-title', 'Dashboard')</h1>
                     <div class="flex items-center space-x-4">
                         @yield('header-actions')
-                        <span class="text-sm text-gray-600">Welcome, {{ auth()->user()->name }}</span>
-                        <div class="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center">
-                            <span class="text-emerald-600 font-semibold text-sm">
-                                {{ substr(auth()->user()->name, 0, 1) }}
-                            </span>
+                        <!-- User info and logout -->
+                        <div class="flex items-center space-x-4">
+                            <div class="text-right">
+                                <p class="text-sm font-medium text-gray-900">{{ auth()->user()->name }}</p>
+                                <p class="text-xs text-gray-500">{{ auth()->user()->email }}</p>
+                            </div>
+                            <div class="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center">
+                                <span class="text-emerald-600 font-semibold text-sm">
+                                    {{ substr(auth()->user()->name, 0, 1) }}
+                                </span>
+                            </div>
+                            <form method="POST" action="{{ route('logout') }}" class="inline">
+                                @csrf
+                                <button type="submit" class="text-gray-600 hover:text-red-600 transition-colors" title="Logout">
+                                    <i class="fas fa-sign-out-alt text-lg"></i>
+                                </button>
+                            </form>
                         </div>
                     </div>
                 </div>

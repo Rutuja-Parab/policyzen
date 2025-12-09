@@ -15,6 +15,7 @@ use App\Http\Controllers\EntityController;
 use App\Http\Controllers\StudentPolicyController;
 use App\Http\Controllers\ReportsController;
 use App\Http\Controllers\SearchController;
+use App\Http\Controllers\AuditLogController;
 
 Route::get('/', function () {
     return redirect()->route('login');
@@ -141,4 +142,10 @@ Route::middleware('auth')->group(function () {
 
     // Search
     Route::get('/search', [SearchController::class, 'index'])->name('search.index');
+
+    // Audit Logs
+    Route::get('/audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
+    Route::get('/audit-logs/{auditLog}', [AuditLogController::class, 'show'])->name('audit-logs.show');
+    Route::get('/audit-logs/statistics', [AuditLogController::class, 'statistics'])->name('audit-logs.statistics');
+    Route::post('/audit-logs/export', [AuditLogController::class, 'export'])->name('audit-logs.export');
 });
