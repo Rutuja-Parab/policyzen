@@ -1,12 +1,13 @@
 @extends('layouts.app')
 
 @section('title', 'Add Employee - PolicyZen')
-@section('page-title', 'Add New Employee')
-
-@section('header-actions')
-<a href="{{ route('entities.employees.index') }}" class="text-gray-400 hover:text-gray-600 mr-4">
-    <i class="fas fa-arrow-left"></i>
-</a>
+@section('page-title')
+<div class="flex items-center">
+    <a href="{{ route('entities.employees.index') }}" class="text-gray-400 hover:text-gray-600 mr-3">
+        <i class="fas fa-arrow-left"></i>
+    </a>
+    <span>Add New Employee</span>
+</div>
 @endsection
 
 @section('content')

@@ -42,9 +42,15 @@
             <div class="bg-gray-50 rounded-lg p-4 border">
                 <div class="flex items-center justify-between mb-3">
                     <h3 class="font-medium text-gray-900">{{ $company->name }}</h3>
-                    <span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">
-                        Active
-                    </span>
+                    @if($company->status === 'active')
+                        <span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800">
+                            Active
+                        </span>
+                    @else
+                        <span class="px-2 py-1 text-xs rounded-full bg-red-100 text-red-800">
+                            Inactive
+                        </span>
+                    @endif
                 </div>
 
                 <div class="space-y-2 text-sm">

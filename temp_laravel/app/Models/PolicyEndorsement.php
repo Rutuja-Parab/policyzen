@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class PolicyEndorsement extends Model
 {
@@ -18,14 +20,10 @@ class PolicyEndorsement extends Model
         'description',
         'effective_date',
         'created_by',
-        'created_at',
-        'updated_at',
     ];
 
     protected $casts = [
         'effective_date' => 'date',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
     ];
 
     /**
@@ -42,5 +40,19 @@ class PolicyEndorsement extends Model
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
+    }
+
+    /**
+     * Get the entities associated with this endorsement.
+     */
+    public function entities(): BelongsToMany
+    {
+        return $this->belongsToMany(Entity::class, 'endorsement_entities', 'endorsement_id', 'entity_id')
+            ->withTimestamps();
+    }
+
+    public function documents(): MorphMany
+    {
+        return $this->morphMany(Document::class, 'documentable');
     }
 }

@@ -18,13 +18,11 @@ class Course extends Model
         'description',
         'department',
         'duration_months',
-        'course_fee',
         'status',
     ];
 
     protected $casts = [
         'duration_months' => 'integer',
-        'course_fee' => 'decimal:2',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];

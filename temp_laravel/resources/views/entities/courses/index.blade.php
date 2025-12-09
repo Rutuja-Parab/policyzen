@@ -52,9 +52,6 @@
                     @if($course->duration_months)
                     <p><span class="font-medium">Duration:</span> {{ $course->duration_months }} months</p>
                     @endif
-                    @if($course->course_fee)
-                    <p><span class="font-medium">Fee:</span> ${{ number_format($course->course_fee, 2) }}</p>
-                    @endif
                 </div>
 
                 <div class="flex space-x-2 mt-4">

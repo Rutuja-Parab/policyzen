@@ -46,6 +46,15 @@
                     </select>
                     <p class="text-xs text-gray-500 mt-1">Leave empty if this is a top-level company</p>
                 </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Status *</label>
+                    <select name="status" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                    </select>
+                    <p class="text-xs text-gray-500 mt-1">Inactive companies won't be available for insurance coverage</p>
+                </div>
             </div>
 
             <div class="mt-6 flex justify-end space-x-4">

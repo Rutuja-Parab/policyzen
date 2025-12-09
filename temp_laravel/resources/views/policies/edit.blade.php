@@ -1,99 +1,23 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Edit Policy - PolicyZen</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-</head>
-<body class="bg-gray-50">
-    <div class="min-h-screen flex">
-        <!-- Sidebar -->
-        <div class="w-64 bg-white shadow-lg">
-            <div class="p-6">
-                <div class="flex items-center space-x-3 mb-8">
-                    <div class="w-10 h-10 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center">
-                        <i class="fas fa-shield-alt text-white"></i>
-                    </div>
-                    <h1 class="text-xl font-bold text-gray-900">PolicyZen</h1>
-                </div>
+@extends('layouts.app')
 
-                <nav class="space-y-2">
-                    <a href="{{ route('dashboard') }}" class="flex items-center space-x-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-lg">
-                        <i class="fas fa-tachometer-alt"></i>
-                        <span>Dashboard</span>
-                    </a>
-                    <a href="{{ route('entities.index') }}" class="flex items-center space-x-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-lg">
-                        <i class="fas fa-users"></i>
-                        <span>Entities</span>
-                    </a>
-                    <a href="{{ route('policies.index') }}" class="flex items-center space-x-3 px-4 py-3 bg-blue-50 text-blue-600 rounded-lg">
-                        <i class="fas fa-file-alt"></i>
-                        <span>Policies</span>
-                    </a>
-                    <a href="{{ route('endorsements.index') }}" class="flex items-center space-x-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-lg">
-                        <i class="fas fa-edit"></i>
-                        <span>Endorsements</span>
-                    </a>
-                    <a href="{{ route('reports.index') }}" class="flex items-center space-x-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-lg">
-                        <i class="fas fa-chart-line"></i>
-                        <span>Reports</span>
-                    </a>
-                    <a href="{{ route('search.index') }}" class="flex items-center space-x-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-lg">
-                        <i class="fas fa-search"></i>
-                        <span>Search</span>
-                    </a>
-                </nav>
-            </div>
+@section('title', 'Edit Policy - PolicyZen')
 
-            <!-- User info and logout -->
-            <div class="absolute bottom-0 w-64 p-4">
-                <div class="flex items-center space-x-4 mb-4">
-                    <div class="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center">
-                        <span class="text-emerald-600 font-semibold text-sm">
-                            {{ substr(auth()->user()->name, 0, 1) }}
-                        </span>
-                    </div>
-                    <div>
-                        <p class="text-sm font-medium text-gray-900">{{ auth()->user()->name }}</p>
-                        <p class="text-xs text-gray-500">{{ auth()->user()->email }}</p>
-                    </div>
-                </div>
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf
-                    <button type="submit" class="w-full flex items-center space-x-3 px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-lg">
-                        <i class="fas fa-sign-out-alt"></i>
-                        <span>Logout</span>
-                    </button>
-                </form>
-            </div>
-        </div>
+@section('page-title')
+<div class="flex items-center">
+    <a href="{{ route('policies.index') }}" class="text-gray-400 hover:text-gray-600 mr-3">
+        <i class="fas fa-arrow-left"></i>
+    </a>
+    <span>Edit Policy</span>
+</div>
+@endsection
 
-        <!-- Main Content -->
-        <div class="flex-1">
-            <!-- Header -->
-            <header class="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center space-x-4">
-                        <a href="{{ route('policies.index') }}" class="text-gray-400 hover:text-gray-600">
-                            <i class="fas fa-arrow-left"></i>
-                        </a>
-                        <h1 class="text-2xl font-bold text-gray-900">Edit Policy</h1>
-                    </div>
-                    <div class="flex items-center space-x-4">
-                        <span class="text-sm text-gray-600">Welcome, {{ auth()->user()->name }}</span>
-                        <div class="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center">
-                            <span class="text-emerald-600 font-semibold text-sm">
-                                {{ substr(auth()->user()->name, 0, 1) }}
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            </header>
+@section('header-actions')
+<a href="{{ route('policies.show', $policy) }}" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 mr-2">
+    <i class="fas fa-eye mr-2"></i>View Details
+</a>
+@endsection
 
-            <!-- Content -->
-            <main class="p-6">
+@section('content')
                 @if(session('success'))
                 <div class="mb-4 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded">
                     {{ session('success') }}
@@ -112,23 +36,115 @@
 
                 <div class="bg-white rounded-lg shadow">
                     <div class="p-6">
-                        <form method="POST" action="{{ route('policies.update', $policy) }}">
+                        <form method="POST" action="{{ route('policies.update', $policy) }}" enctype="multipart/form-data">
                             @csrf
                             @method('PUT')
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">Entity *</label>
-                                    <select name="entity_id" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                                        <option value="">Select Entity</option>
-                                        @foreach($entities as $entity)
-                                        <option value="{{ $entity->id }}" {{ $policy->entity_id == $entity->id ? 'selected' : '' }}>{{ $entity->description }}</option>
-                                        @endforeach
-                                    </select>
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Covered Entities *</label>
+                                <p class="text-xs text-gray-500 mb-3">Select entities to cover under this group policy. Use search and filters to manage large lists.</p>
+                                
+                                <!-- Search and Filter Controls -->
+                                <div class="mb-4 space-y-3">
+                                    <div class="flex flex-col sm:flex-row gap-3">
+                                        <div class="flex-1 relative">
+                                            <input type="text" id="entity-search" placeholder="Search entities by name..." 
+                                                   class="w-full border border-gray-300 rounded-lg px-4 py-2 pl-10 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                            <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                                        </div>
+                                        <select id="entity-type-filter" class="border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                            <option value="ALL">All Types</option>
+                                            <option value="EMPLOYEE">Employees</option>
+                                            <option value="STUDENT">Students</option>
+                                            <option value="VEHICLE">Vehicles</option>
+                                            <option value="SHIP">Vessels</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <!-- Bulk Actions -->
+                                    <div class="flex items-center justify-between bg-blue-50 p-3 rounded-lg">
+                                        <div class="flex items-center space-x-4">
+                                            <button type="button" onclick="selectAllEntities()" class="text-sm text-blue-600 hover:text-blue-800 font-medium">
+                                                <i class="fas fa-check-square mr-1"></i>Select All
+                                            </button>
+                                            <button type="button" onclick="deselectAllEntities()" class="text-sm text-gray-600 hover:text-gray-800 font-medium">
+                                                <i class="fas fa-square mr-1"></i>Deselect All
+                                            </button>
+                                            <button type="button" onclick="selectByType()" class="text-sm text-blue-600 hover:text-blue-800 font-medium">
+                                                <i class="fas fa-filter mr-1"></i>Select by Type
+                                            </button>
+                                        </div>
+                                        <div class="text-sm font-medium text-gray-700">
+                                            <span id="selected-count">0</span> selected
+                                        </div>
+                                    </div>
                                 </div>
+
+                                <!-- Entity Selection Area -->
+                                <div class="border border-gray-300 rounded-lg p-4 bg-gray-50 max-h-96 overflow-y-auto">
+                                    <div id="entity-list" class="space-y-4">
+                                        @php
+                                        $groupedEntities = $entities->groupBy('type');
+                                        @endphp
+                                        
+                                        @foreach($groupedEntities as $type => $typeEntities)
+                                        <div class="entity-group" data-entity-type="{{ $type }}">
+                                            <div class="flex items-center justify-between mb-3 pb-2 border-b border-gray-200">
+                                                <h4 class="font-medium text-gray-900 flex items-center">
+                                                    @if($type === 'EMPLOYEE')
+                                                    <i class="fas fa-user mr-2 text-blue-600"></i>
+                                                    @elseif($type === 'STUDENT')
+                                                    <i class="fas fa-graduation-cap mr-2 text-green-600"></i>
+                                                    @elseif($type === 'COMPANY')
+                                                    <i class="fas fa-building mr-2 text-purple-600"></i>
+                                                    @elseif($type === 'COURSE')
+                                                    <i class="fas fa-book mr-2 text-orange-600"></i>
+                                                    @elseif($type === 'VEHICLE')
+                                                    <i class="fas fa-car mr-2 text-indigo-600"></i>
+                                                    @elseif($type === 'SHIP')
+                                                    <i class="fas fa-ship mr-2 text-teal-600"></i>
+                                                    @endif
+                                                    {{ $type }} <span class="ml-2 text-sm text-gray-500">({{ $typeEntities->count() }})</span>
+                                                </h4>
+                                                <button type="button" onclick="selectType('{{ $type }}')" class="text-xs text-blue-600 hover:text-blue-800">
+                                                    Select All
+                                                </button>
+                                            </div>
+                                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 entity-items">
+                                                @foreach($typeEntities as $entity)
+                                                <label class="entity-item flex items-center space-x-2 p-2 rounded hover:bg-white cursor-pointer" data-entity-name="{{ strtolower($entity->description) }}">
+                                                    <input type="checkbox" name="entity_ids[]" value="{{ $entity->id }}" 
+                                                           {{ in_array($entity->id, $currentEntityIds) ? 'checked' : '' }}
+                                                           class="entity-checkbox rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                                           onchange="updateSelectedCount()">
+                                                    <span class="text-sm text-gray-700">{{ $entity->description }}</span>
+                                                    @if(in_array($entity->id, $currentEntityIds))
+                                                        <span class="ml-auto inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                                                            Currently Covered
+                                                        </span>
+                                                    @endif
+                                                </label>
+                                                @endforeach
+                                            </div>
+                                        </div>
+                                        @endforeach
+                                    </div>
+                                    
+                                    <div id="no-results" class="hidden text-center py-8">
+                                        <i class="fas fa-search text-4xl text-gray-300 mb-2"></i>
+                                        <p class="text-gray-500">No entities found matching your search</p>
+                                    </div>
+                                </div>
+                            </div>
 
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-2">Policy Number *</label>
-                                    <input type="text" name="policy_number" value="{{ $policy->policy_number }}" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <input type="text" name="policy_number" required 
+                                           pattern="^[A-Z0-9\-]{5,20}$"
+                                           value="{{ $policy->policy_number }}"
+                                           class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                           placeholder="POL-2025-001">
+                                    <p class="text-xs text-gray-500 mt-1">5-20 characters, uppercase letters, numbers and hyphens only</p>
                                 </div>
 
                                 <div>
@@ -148,6 +164,16 @@
                                 </div>
 
                                 <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Status *</label>
+                                    <select name="status" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                        <option value="ACTIVE" {{ $policy->status == 'ACTIVE' ? 'selected' : '' }}>Active</option>
+                                        <option value="EXPIRED" {{ $policy->status == 'EXPIRED' ? 'selected' : '' }}>Expired</option>
+                                        <option value="UNDER_REVIEW" {{ $policy->status == 'UNDER_REVIEW' ? 'selected' : '' }}>Under Review</option>
+                                        <option value="CANCELLED" {{ $policy->status == 'CANCELLED' ? 'selected' : '' }}>Cancelled</option>
+                                    </select>
+                                </div>
+
+                                <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-2">Start Date *</label>
                                     <input type="date" name="start_date" value="{{ $policy->start_date ? $policy->start_date->format('Y-m-d') : '' }}" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                                 </div>
@@ -158,23 +184,54 @@
                                 </div>
 
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">Sum Insured ($)</label>
-                                    <input type="number" name="sum_insured" value="{{ $policy->sum_insured }}" step="0.01" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Sum Insured (₹) *</label>
+                                    <div class="relative">
+                                        <span class="absolute left-3 top-2 text-gray-500">₹</span>
+                                        <input type="text" name="sum_insured" required 
+                                               pattern="^[0-9]+(?:\.[0-9]{1,2})?$"
+                                               value="{{ number_format($policy->sum_insured, 2, '.', '') }}"
+                                               class="w-full border border-gray-300 rounded-lg px-8 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                               placeholder="100000.00"
+                                               maxlength="15"
+                                               oninput="formatCurrency(this)">
+                                    </div>
+                                    <p class="text-xs text-gray-500 mt-1">Enter amount in Indian Rupees (e.g., 100000.00 for ₹1,00,000)</p>
                                 </div>
 
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">Premium Amount ($)</label>
-                                    <input type="number" name="premium_amount" value="{{ $policy->premium_amount }}" step="0.01" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Premium Amount (₹) *</label>
+                                    <div class="relative">
+                                        <span class="absolute left-3 top-2 text-gray-500">₹</span>
+                                        <input type="text" name="premium_amount" required 
+                                               pattern="^[0-9]+(?:\.[0-9]{1,2})?$"
+                                               value="{{ number_format($policy->premium_amount, 2, '.', '') }}"
+                                               class="w-full border border-gray-300 rounded-lg px-8 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                               placeholder="5000.00"
+                                               maxlength="10"
+                                               oninput="formatCurrency(this)">
+                                    </div>
+                                    <p class="text-xs text-gray-500 mt-1">Enter amount in Indian Rupees (e.g., 5000.00 for ₹5,000)</p>
                                 </div>
+                            </div>
 
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-2">Status *</label>
-                                    <select name="status" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                                        <option value="ACTIVE" {{ $policy->status == 'ACTIVE' ? 'selected' : '' }}>Active</option>
-                                        <option value="EXPIRED" {{ $policy->status == 'EXPIRED' ? 'selected' : '' }}>Expired</option>
-                                        <option value="UNDER_REVIEW" {{ $policy->status == 'UNDER_REVIEW' ? 'selected' : '' }}>Under Review</option>
-                                        <option value="CANCELLED" {{ $policy->status == 'CANCELLED' ? 'selected' : '' }}>Cancelled</option>
-                                    </select>
+                            <!-- Document Upload Section -->
+                            <div class="mt-8 border-t border-gray-200 pt-6">
+                                <h3 class="text-lg font-medium text-gray-900 mb-4">Upload Additional Documents</h3>
+                                <div class="space-y-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Select Files</label>
+                                        <input type="file" name="documents[]" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                        <p class="text-xs text-gray-500 mt-1">Supported formats: PDF, DOC, DOCX, JPG, JPEG, PNG (Max 10MB each)</p>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-2">Document Type</label>
+                                        <select name="document_type" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                            <option value="POLICY_DOCUMENT">Policy Document</option>
+                                            <option value="ENDORSEMENT_DOCUMENT">Endorsement Document</option>
+                                            <option value="FINANCIAL_DOCUMENT">Financial Document</option>
+                                            <option value="OTHER">Other</option>
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
 
@@ -189,8 +246,317 @@
                         </form>
                     </div>
                 </div>
-            </main>
-        </div>
-    </div>
-</body>
-</html>
+
+@push('scripts')
+<script>
+// Search functionality
+document.getElementById('entity-search').addEventListener('input', function(e) {
+    const searchTerm = e.target.value.toLowerCase();
+    const entityItems = document.querySelectorAll('.entity-item');
+    let visibleCount = 0;
+    
+    entityItems.forEach(item => {
+        const entityName = item.getAttribute('data-entity-name');
+        const parentGroup = item.closest('.entity-group');
+        
+        if (entityName.includes(searchTerm)) {
+            item.classList.remove('hidden');
+            visibleCount++;
+        } else {
+            item.classList.add('hidden');
+        }
+    });
+    
+    // Hide/show groups with no visible items
+    document.querySelectorAll('.entity-group').forEach(group => {
+        const visibleItems = group.querySelectorAll('.entity-item:not(.hidden)');
+        group.style.display = visibleItems.length > 0 ? 'block' : 'none';
+    });
+    
+    // Show/hide no results message
+    document.getElementById('no-results').classList.toggle('hidden', visibleCount > 0);
+});
+
+// Filter by type
+document.getElementById('entity-type-filter').addEventListener('change', function(e) {
+    const selectedType = e.target.value;
+    const groups = document.querySelectorAll('.entity-group');
+    
+    groups.forEach(group => {
+        if (selectedType === 'ALL' || group.getAttribute('data-entity-type') === selectedType) {
+            group.style.display = 'block';
+        } else {
+            group.style.display = 'none';
+        }
+    });
+});
+
+// Currency formatting function
+function formatCurrency(input) {
+    let value = input.value.replace(/[^0-9.]/g, '');
+    let parts = value.split('.');
+    if (parts.length > 2) {
+        value = parts[0] + '.' + parts.slice(1).join('');
+    }
+    if (parts[1] && parts[1].length > 2) {
+        value = parts[0] + '.' + parts[1].substring(0, 2);
+    }
+    input.value = value;
+}
+
+// Phone number formatting function
+function formatPhone(input) {
+    let value = input.value.replace(/\D/g, '');
+    if (value.length > 10) {
+        value = value.substring(0, 10);
+    }
+    input.value = value;
+}
+
+// Real-time validation functions
+function validateEmail(input) {
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    const isValid = emailRegex.test(input.value);
+    toggleFieldValidation(input, isValid, 'Please enter a valid email address');
+    return isValid;
+}
+
+function validatePhone(input) {
+    const phoneRegex = /^\+91[0-9]{10}$/;
+    const value = input.value;
+    let isValid = false;
+    let message = 'Please enter 10 digits';
+    
+    if (value.startsWith('+91') && phoneRegex.test(value)) {
+        isValid = true;
+    } else if (value.length === 10 && /^[0-9]{10}$/.test(value)) {
+        input.value = '+91' + value;
+        isValid = true;
+    } else if (value.length < 10) {
+        message = 'Phone number must be 10 digits';
+    } else if (!value.startsWith('+91')) {
+        message = 'Phone number must start with +91';
+    }
+    
+    toggleFieldValidation(input, isValid, message);
+    return isValid;
+}
+
+function validatePolicyNumber(input) {
+    const policyRegex = /^[A-Z0-9\-]{5,20}$/;
+    const isValid = policyRegex.test(input.value);
+    toggleFieldValidation(input, isValid, 'Policy number must be 5-20 characters (A-Z, 0-9, - only)');
+    return isValid;
+}
+
+function validateCurrency(input) {
+    const currencyRegex = /^[0-9]+(?:\.[0-9]{1,2})?$/;
+    const isValid = currencyRegex.test(input.value) && parseFloat(input.value) > 0;
+    toggleFieldValidation(input, isValid, 'Please enter a valid amount greater than 0');
+    return isValid;
+}
+
+function toggleFieldValidation(input, isValid, message) {
+    const field = input.closest('div');
+    let errorDiv = field.querySelector('.field-error');
+    
+    if (!isValid && input.value) {
+        if (!errorDiv) {
+            errorDiv = document.createElement('div');
+            errorDiv.className = 'field-error text-red-500 text-xs mt-1';
+            field.appendChild(errorDiv);
+        }
+        errorDiv.textContent = message;
+        input.classList.add('border-red-500');
+        input.classList.remove('border-green-500');
+    } else if (isValid && input.value) {
+        if (errorDiv) {
+            errorDiv.remove();
+        }
+        input.classList.remove('border-red-500');
+        input.classList.add('border-green-500');
+    } else {
+        if (errorDiv) {
+            errorDiv.remove();
+        }
+        input.classList.remove('border-red-500', 'border-green-500');
+    }
+}
+
+// Form validation before submission
+function validateForm() {
+    let isValid = true;
+    
+    // Validate required fields
+    const requiredFields = document.querySelectorAll('input[required], select[required]');
+    requiredFields.forEach(field => {
+        if (!field.value.trim()) {
+            field.classList.add('border-red-500');
+            isValid = false;
+        }
+    });
+    
+    // Validate email
+    const emailField = document.querySelector('input[name="email"]');
+    if (emailField && emailField.value) {
+        if (!validateEmail(emailField)) isValid = false;
+    }
+    
+    // Validate phone
+    const phoneField = document.querySelector('input[name="phone"]');
+    if (phoneField && phoneField.value) {
+        if (!validatePhone(phoneField)) isValid = false;
+    }
+    
+    // Validate policy number
+    const policyField = document.querySelector('input[name="policy_number"]');
+    if (policyField) {
+        if (!validatePolicyNumber(policyField)) isValid = false;
+    }
+    
+    // Validate currency fields
+    const sumInsuredField = document.querySelector('input[name="sum_insured"]');
+    if (sumInsuredField) {
+        if (!validateCurrency(sumInsuredField)) isValid = false;
+    }
+    
+    const premiumField = document.querySelector('input[name="premium_amount"]');
+    if (premiumField) {
+        if (!validateCurrency(premiumField)) isValid = false;
+    }
+    
+    // Validate entity selection
+    const entityCheckboxes = document.querySelectorAll('.entity-checkbox:checked');
+    if (entityCheckboxes.length === 0) {
+        alert('Please select at least one entity to cover under this policy');
+        isValid = false;
+    }
+    
+    return isValid;
+}
+
+// Add event listeners for real-time validation
+document.addEventListener('DOMContentLoaded', function() {
+    // Email validation
+    const emailFields = document.querySelectorAll('input[type="email"]');
+    emailFields.forEach(field => {
+        field.addEventListener('blur', function() {
+            if (this.value) validateEmail(this);
+        });
+        field.addEventListener('input', function() {
+            if (this.classList.contains('border-red-500')) {
+                validateEmail(this);
+            }
+        });
+    });
+    
+    // Phone validation
+    const phoneFields = document.querySelectorAll('input[type="tel"]');
+    phoneFields.forEach(field => {
+        field.addEventListener('input', function() {
+            formatPhone(this);
+            if (this.classList.contains('border-red-500') || this.value.startsWith('+91')) {
+                validatePhone(this);
+            }
+        });
+        field.addEventListener('blur', function() {
+            if (this.value && !this.value.startsWith('+91')) {
+                this.value = '+91' + this.value;
+            }
+            validatePhone(this);
+        });
+    });
+    
+    // Policy number validation
+    const policyFields = document.querySelectorAll('input[name="policy_number"]');
+    policyFields.forEach(field => {
+        field.addEventListener('input', function() {
+            this.value = this.value.toUpperCase();
+            if (this.classList.contains('border-red-500')) {
+                validatePolicyNumber(this);
+            }
+        });
+        field.addEventListener('blur', function() {
+            validatePolicyNumber(this);
+        });
+    });
+    
+    // Currency validation
+    const currencyFields = document.querySelectorAll('input[pattern*="[0-9]"]');
+    currencyFields.forEach(field => {
+        field.addEventListener('input', function() {
+            if (this.name === 'sum_insured' || this.name === 'premium_amount') {
+                formatCurrency(this);
+            }
+            if (this.classList.contains('border-red-500')) {
+                validateCurrency(this);
+            }
+        });
+        field.addEventListener('blur', function() {
+            if (this.name === 'sum_insured' || this.name === 'premium_amount') {
+                validateCurrency(this);
+            }
+        });
+    });
+    
+    // Form submission validation
+    const forms = document.querySelectorAll('form');
+    forms.forEach(form => {
+        form.addEventListener('submit', function(e) {
+            if (!validateForm()) {
+                e.preventDefault();
+                alert('Please correct the highlighted errors before submitting');
+            }
+        });
+    });
+    
+    updateSelectedCount();
+});
+
+// Entity selection functions
+function selectAllEntities() {
+    document.querySelectorAll('.entity-checkbox:not(:disabled)').forEach(checkbox => {
+        if (!checkbox.closest('.entity-item').classList.contains('hidden')) {
+            checkbox.checked = true;
+        }
+    });
+    updateSelectedCount();
+}
+
+function deselectAllEntities() {
+    document.querySelectorAll('.entity-checkbox').forEach(checkbox => {
+        checkbox.checked = false;
+    });
+    updateSelectedCount();
+}
+
+function selectByType() {
+    const selectedType = document.getElementById('entity-type-filter').value;
+    if (selectedType === 'ALL') {
+        selectAllEntities();
+    } else {
+        document.querySelectorAll(`.entity-group[data-entity-type="${selectedType}"] .entity-checkbox:not(:disabled)`).forEach(checkbox => {
+            if (!checkbox.closest('.entity-item').classList.contains('hidden')) {
+                checkbox.checked = true;
+            }
+        });
+        updateSelectedCount();
+    }
+}
+
+function selectType(type) {
+    document.querySelectorAll(`.entity-group[data-entity-type="${type}"] .entity-checkbox:not(:disabled)`).forEach(checkbox => {
+        if (!checkbox.closest('.entity-item').classList.contains('hidden')) {
+            checkbox.checked = true;
+        }
+    });
+    updateSelectedCount();
+}
+
+function updateSelectedCount() {
+    const checked = document.querySelectorAll('.entity-checkbox:checked').length;
+    document.getElementById('selected-count').textContent = checked;
+}
+</script>
+@endpush
+@endsection

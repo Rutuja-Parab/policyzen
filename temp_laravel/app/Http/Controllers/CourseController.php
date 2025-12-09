@@ -34,25 +34,22 @@ class CourseController extends Controller
             'description' => 'nullable|string',
             'department' => 'nullable|string',
             'duration_months' => 'nullable|integer|min:1',
-            'course_fee' => 'nullable|numeric|min:0',
+            'status' => 'in:ACTIVE,INACTIVE',
         ]);
 
         DB::transaction(function () use ($request) {
             $course = Course::create([
-                'id' => (string) Str::uuid(),
                 'company_id' => $request->company_id,
                 'course_code' => $request->course_code,
                 'course_name' => $request->course_name,
                 'description' => $request->description,
                 'department' => $request->department,
                 'duration_months' => $request->duration_months,
-                'course_fee' => $request->course_fee,
-                'status' => 'ACTIVE',
+                'status' => $request->status ?? 'ACTIVE',
             ]);
 
             // Create entity record
             Entity::create([
-                'id' => (string) Str::uuid(),
                 'company_id' => $request->company_id,
                 'type' => 'COURSE',
                 'entity_id' => $course->id,
@@ -84,12 +81,19 @@ class CourseController extends Controller
             'description' => 'nullable|string',
             'department' => 'nullable|string',
             'duration_months' => 'nullable|integer|min:1',
-            'course_fee' => 'nullable|numeric|min:0',
             'status' => 'required|in:ACTIVE,INACTIVE',
         ]);
 
         DB::transaction(function () use ($request, $course) {
-            $course->update($request->all());
+            $course->update([
+                'course_code' => $request->course_code,
+                'course_name' => $request->course_name,
+                'company_id' => $request->company_id,
+                'description' => $request->description,
+                'department' => $request->department,
+                'duration_months' => $request->duration_months,
+                'status' => $request->status,
+            ]);
 
             // Update entity description
             $course->entity()->update([
@@ -110,29 +114,118 @@ class CourseController extends Controller
         return redirect()->route('entities.courses.index')->with('success', 'Course deleted successfully');
     }
 
-    // API methods (if needed)
-    public function index()
+    // API methods
+    public function index(Request $request)
     {
-        return Course::with('company')->get();
+        $query = Course::with('company');
+
+        if ($request->has('company_id')) {
+            $query->where('company_id', $request->company_id);
+        }
+
+        $courses = $query->orderBy('created_at', 'desc')->get();
+        return response()->json($courses);
     }
 
     public function store(Request $request)
     {
-        // API store method
+        $request->validate([
+            'course_code' => 'required|string|unique:courses,course_code',
+            'course_name' => 'required|string',
+            'company_id' => 'required|uuid|exists:companies,id',
+            'description' => 'nullable|string',
+            'department' => 'nullable|string',
+            'duration_months' => 'nullable|integer|min:1',
+            'status' => 'in:ACTIVE,INACTIVE',
+        ]);
+
+        DB::beginTransaction();
+        try {
+            $course = Course::create([
+                'company_id' => $request->company_id,
+                'course_code' => $request->course_code,
+                'course_name' => $request->course_name,
+                'description' => $request->description,
+                'department' => $request->department,
+                'duration_months' => $request->duration_months,
+                'status' => $request->status ?? 'ACTIVE',
+            ]);
+
+            // Create entity record
+            Entity::create([
+                'company_id' => $request->company_id,
+                'type' => 'COURSE',
+                'entity_id' => $course->id,
+                'description' => $request->course_name . ' (' . $request->course_code . ')',
+            ]);
+
+            DB::commit();
+            return response()->json($course->load('company'), 201);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['message' => 'Failed to create course', 'error' => $e->getMessage()], 500);
+        }
     }
 
-    public function show(Course $course)
+    public function show(string $id)
     {
-        return $course->load('company');
+        $course = Course::with('company')->findOrFail($id);
+        return response()->json($course);
     }
 
-    public function update(Request $request, Course $course)
+    public function update(Request $request, string $id)
     {
-        // API update method
+        $request->validate([
+            'course_code' => 'required|string|unique:courses,course_code,' . $id,
+            'course_name' => 'required|string',
+            'company_id' => 'required|uuid|exists:companies,id',
+            'description' => 'nullable|string',
+            'department' => 'nullable|string',
+            'duration_months' => 'nullable|integer|min:1',
+            'status' => 'in:ACTIVE,INACTIVE',
+        ]);
+
+        DB::beginTransaction();
+        try {
+            $course = Course::findOrFail($id);
+            $course->update([
+                'course_code' => $request->course_code,
+                'course_name' => $request->course_name,
+                'company_id' => $request->company_id,
+                'description' => $request->description,
+                'department' => $request->department,
+                'duration_months' => $request->duration_months,
+                'status' => $request->status ?? 'ACTIVE',
+            ]);
+
+            // Update entity description
+            Entity::where('entity_id', $id)->where('type', 'COURSE')->update([
+                'description' => $request->course_name . ' (' . $request->course_code . ')',
+            ]);
+
+            DB::commit();
+            return response()->json($course->load('company'));
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['message' => 'Failed to update course', 'error' => $e->getMessage()], 500);
+        }
     }
 
-    public function destroy(Course $course)
+    public function destroy(string $id)
     {
-        // API destroy method
+        DB::beginTransaction();
+        try {
+            $course = Course::findOrFail($id);
+            
+            // Delete related entity first
+            Entity::where('entity_id', $id)->where('type', 'COURSE')->delete();
+            $course->delete();
+
+            DB::commit();
+            return response()->json(['message' => 'Course deleted']);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['message' => 'Failed to delete course', 'error' => $e->getMessage()], 500);
+        }
     }
 }

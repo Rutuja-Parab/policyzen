@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Vehicle;
+use App\Models\Company;
 use App\Models\Entity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -144,7 +145,8 @@ class VehicleController extends Controller
 
     public function webCreate()
     {
-        return view('entities.vehicles.create');
+        $companies = Company::orderBy('name')->get();
+        return view('entities.vehicles.create', compact('companies'));
     }
 
     public function webStore(Request $request)
@@ -194,7 +196,8 @@ class VehicleController extends Controller
 
     public function webEdit(Vehicle $vehicle)
     {
-        return view('entities.vehicles.edit', compact('vehicle'));
+        $companies = Company::orderBy('name')->get();
+        return view('entities.vehicles.edit', compact('vehicle', 'companies'));
     }
 
     public function webUpdate(Request $request, Vehicle $vehicle)

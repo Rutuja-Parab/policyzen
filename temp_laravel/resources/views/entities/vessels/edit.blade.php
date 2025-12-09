@@ -1,0 +1,89 @@
+@extends('layouts.app')
+
+@section('title', 'Edit Vessel - PolicyZen')
+@section('page-title')
+<div class="flex items-center">
+    <a href="{{ route('entities.vessels.show', $vessel) }}" class="text-gray-400 hover:text-gray-600 mr-3">
+        <i class="fas fa-arrow-left"></i>
+    </a>
+    <span>Edit Vessel</span>
+</div>
+@endsection
+
+@section('content')
+@if(session('success'))
+<div class="mb-4 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded">
+    {{ session('success') }}
+</div>
+@endif
+
+@if($errors->any())
+<div class="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+    <ul>
+        @foreach($errors->all() as $error)
+        <li>{{ $error }}</li>
+        @endforeach
+    </ul>
+</div>
+@endif
+
+<div class="bg-white rounded-lg shadow">
+    <div class="p-6">
+        <form method="POST" action="{{ route('entities.vessels.update', $vessel) }}">
+            @csrf
+            @method('PUT')
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Company *</label>
+                    <select name="company_id" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="">Select Company</option>
+                        @foreach($companies as $company)
+                        <option value="{{ $company->id }}" {{ old('company_id', $vessel->company_id) == $company->id ? 'selected' : '' }}>
+                            {{ $company->name }}
+                        </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Vessel Name *</label>
+                    <input type="text" name="vessel_name" value="{{ old('vessel_name', $vessel->vessel_name) }}" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">IMO Number *</label>
+                    <input type="text" name="imo_number" value="{{ old('imo_number', $vessel->imo_number) }}" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Vessel Type</label>
+                    <input type="text" name="vessel_type" value="{{ old('vessel_type', $vessel->vessel_type) }}" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Flag</label>
+                    <input type="text" name="flag" value="{{ old('flag', $vessel->flag) }}" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                    <select name="status" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="ACTIVE" {{ old('status', $vessel->status) === 'ACTIVE' ? 'selected' : '' }}>Active</option>
+                        <option value="INACTIVE" {{ old('status', $vessel->status) === 'INACTIVE' ? 'selected' : '' }}>Inactive</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="mt-6 flex justify-end space-x-4">
+                <a href="{{ route('entities.vessels.show', $vessel) }}" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400">
+                    Cancel
+                </a>
+                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                    <i class="fas fa-save mr-2"></i>Update Vessel
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+@endsection
+

@@ -6,6 +6,7 @@ use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\VesselController;
 use App\Http\Controllers\VehicleController;
+use App\Http\Controllers\CourseController;
 use App\Http\Controllers\EntityController;
 use App\Http\Controllers\InsurancePolicyController;
 use App\Http\Controllers\PolicyEndorsementController;
@@ -69,6 +70,15 @@ Route::apiResource('vehicles', VehicleController::class)->names([
     'show' => 'api.vehicles.show',
     'update' => 'api.vehicles.update',
     'destroy' => 'api.vehicles.destroy',
+]);
+
+// Courses
+Route::apiResource('courses', CourseController::class)->names([
+    'index' => 'api.courses.index',
+    'store' => 'api.courses.store',
+    'show' => 'api.courses.show',
+    'update' => 'api.courses.update',
+    'destroy' => 'api.courses.destroy',
 ]);
 
 // Entities

@@ -26,18 +26,41 @@
                         <i class="fas fa-tachometer-alt"></i>
                         <span>Dashboard</span>
                     </a>
-                    <a href="{{ route('companies.index') }}" class="flex items-center space-x-3 px-4 py-3 {{ request()->routeIs('companies.*') ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:bg-gray-50' }} rounded-lg">
-                        <i class="fas fa-building"></i>
-                        <span>Companies</span>
-                    </a>
-                    <a href="{{ route('entities.courses.index') }}" class="flex items-center space-x-3 px-4 py-3 {{ request()->routeIs('entities.courses.*') ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:bg-gray-50' }} rounded-lg">
-                        <i class="fas fa-book"></i>
-                        <span>Courses</span>
-                    </a>
-                    <a href="{{ route('entities.index') }}" class="flex items-center space-x-3 px-4 py-3 {{ request()->routeIs('entities.employees.*', 'entities.students.*', 'entities.vessels.*', 'entities.vehicles.*') ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:bg-gray-50' }} rounded-lg">
-                        <i class="fas fa-users"></i>
-                        <span>Entities</span>
-                    </a>
+                    
+                    
+                    
+                    <!-- Entities Dropdown -->
+                    <div class="relative">
+                        @php
+                        $isEntitiesActive = request()->routeIs('entities.employees.*', 'entities.students.*', 'entities.vessels.*', 'entities.vehicles.*', 'entities.index');
+                        $isEntitiesOpen = $isEntitiesActive ? 'block' : 'hidden';
+                        @endphp
+                        <button onclick="toggleEntitiesDropdown()" class="w-full flex items-center justify-between px-4 py-3 {{ $isEntitiesActive ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:bg-gray-50' }} rounded-lg">
+                            <div class="flex items-center space-x-3">
+                                <i class="fas fa-users"></i>
+                                <span>Entities</span>
+                            </div>
+                            <i id="entities-chevron" class="fas fa-chevron-down text-xs transition-transform {{ $isEntitiesActive ? 'rotate-180' : '' }}"></i>
+                        </button>
+                        <div id="entities-dropdown" class="mt-2 ml-4 space-y-1 border-l-2 border-gray-200 pl-4 {{ $isEntitiesOpen }}">
+                            <a href="{{ route('entities.employees.index') }}" class="flex items-center space-x-3 px-4 py-2 {{ request()->routeIs('entities.employees.*') ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:bg-gray-50' }} rounded-lg">
+                                <i class="fas fa-user-tie text-sm"></i>
+                                <span class="text-sm">Employees</span>
+                            </a>
+                            <a href="{{ route('entities.students.index') }}" class="flex items-center space-x-3 px-4 py-2 {{ request()->routeIs('entities.students.*') ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:bg-gray-50' }} rounded-lg">
+                                <i class="fas fa-graduation-cap text-sm"></i>
+                                <span class="text-sm">Students</span>
+                            </a>
+                            <a href="{{ route('entities.vessels.index') }}" class="flex items-center space-x-3 px-4 py-2 {{ request()->routeIs('entities.vessels.*') ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:bg-gray-50' }} rounded-lg">
+                                <i class="fas fa-ship text-sm"></i>
+                                <span class="text-sm">Vessels</span>
+                            </a>
+                            <a href="{{ route('entities.vehicles.index') }}" class="flex items-center space-x-3 px-4 py-2 {{ request()->routeIs('entities.vehicles.*') ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:bg-gray-50' }} rounded-lg">
+                                <i class="fas fa-car text-sm"></i>
+                                <span class="text-sm">Vehicles</span>
+                            </a>
+                        </div>
+                    </div>
                     <a href="{{ route('policies.index') }}" class="flex items-center space-x-3 px-4 py-3 {{ request()->routeIs('policies.*') ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:bg-gray-50' }} rounded-lg">
                         <i class="fas fa-file-alt"></i>
                         <span>Policies</span>
@@ -54,6 +77,30 @@
                         <i class="fas fa-search"></i>
                         <span>Search</span>
                     </a>
+                    <!-- Master Dropdown -->
+                    <div class="relative">
+                        @php
+                        $isMasterActive = request()->routeIs('companies.*', 'entities.courses.*');
+                        $isMasterOpen = $isMasterActive ? 'block' : 'hidden';
+                        @endphp
+                        <button onclick="toggleMasterDropdown()" class="w-full flex items-center justify-between px-4 py-3 {{ $isMasterActive ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:bg-gray-50' }} rounded-lg">
+                            <div class="flex items-center space-x-3">
+                                <i class="fas fa-cog"></i>
+                                <span>Master</span>
+                            </div>
+                            <i id="master-chevron" class="fas fa-chevron-down text-xs transition-transform {{ $isMasterActive ? 'rotate-180' : '' }}"></i>
+                        </button>
+                        <div id="master-dropdown" class="mt-2 ml-4 space-y-1 border-l-2 border-gray-200 pl-4 {{ $isMasterOpen }}">
+                            <a href="{{ route('companies.index') }}" class="flex items-center space-x-3 px-4 py-2 {{ request()->routeIs('companies.*') ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:bg-gray-50' }} rounded-lg">
+                                <i class="fas fa-building text-sm"></i>
+                                <span class="text-sm">Companies</span>
+                            </a>
+                            <a href="{{ route('entities.courses.index') }}" class="flex items-center space-x-3 px-4 py-2 {{ request()->routeIs('entities.courses.*') ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:bg-gray-50' }} rounded-lg">
+                                <i class="fas fa-book text-sm"></i>
+                                <span class="text-sm">Courses</span>
+                            </a>
+                        </div>
+                    </div>
                 </nav>
             </div>
 
@@ -105,6 +152,33 @@
         </div>
     </div>
 
+    <script>
+        function toggleMasterDropdown() {
+            const dropdown = document.getElementById('master-dropdown');
+            const chevron = document.getElementById('master-chevron');
+            
+            if (dropdown.classList.contains('hidden')) {
+                dropdown.classList.remove('hidden');
+                chevron.classList.add('rotate-180');
+            } else {
+                dropdown.classList.add('hidden');
+                chevron.classList.remove('rotate-180');
+            }
+        }
+
+        function toggleEntitiesDropdown() {
+            const dropdown = document.getElementById('entities-dropdown');
+            const chevron = document.getElementById('entities-chevron');
+            
+            if (dropdown.classList.contains('hidden')) {
+                dropdown.classList.remove('hidden');
+                chevron.classList.add('rotate-180');
+            } else {
+                dropdown.classList.add('hidden');
+                chevron.classList.remove('rotate-180');
+            }
+        }
+    </script>
     @stack('scripts')
 </body>
 </html>

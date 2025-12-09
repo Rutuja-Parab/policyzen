@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Vessel;
+use App\Models\Company;
 use App\Models\Entity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -144,7 +145,8 @@ class VesselController extends Controller
 
     public function webCreate()
     {
-        return view('entities.vessels.create');
+        $companies = Company::orderBy('name')->get();
+        return view('entities.vessels.create', compact('companies'));
     }
 
     public function webStore(Request $request)
@@ -194,7 +196,8 @@ class VesselController extends Controller
 
     public function webEdit(Vessel $vessel)
     {
-        return view('entities.vessels.edit', compact('vessel'));
+        $companies = Company::orderBy('name')->get();
+        return view('entities.vessels.edit', compact('vessel', 'companies'));
     }
 
     public function webUpdate(Request $request, Vessel $vessel)

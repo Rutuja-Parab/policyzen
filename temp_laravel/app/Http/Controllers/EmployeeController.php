@@ -199,7 +199,8 @@ class EmployeeController extends Controller
 
     public function webEdit(Employee $employee)
     {
-        return view('entities.employees.edit', compact('employee'));
+        $companies = Company::orderBy('name')->get();
+        return view('entities.employees.edit', compact('employee', 'companies'));
     }
 
     public function webUpdate(Request $request, Employee $employee)

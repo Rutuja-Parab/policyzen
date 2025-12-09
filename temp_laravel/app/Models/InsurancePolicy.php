@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class InsurancePolicy extends Model
 {
@@ -29,8 +30,6 @@ class InsurancePolicy extends Model
         'end_date' => 'date',
         'sum_insured' => 'decimal:2',
         'premium_amount' => 'decimal:2',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
     ];
 
     public function entities(): BelongsToMany
@@ -58,8 +57,8 @@ class InsurancePolicy extends Model
         return $this->hasMany(PolicyEndorsement::class, 'policy_id', 'id');
     }
 
-    public function documents()
+    public function documents(): MorphMany
     {
-        return $this->hasMany(Document::class, 'policy_id', 'id');
+        return $this->morphMany(Document::class, 'documentable');
     }
 }

@@ -16,11 +16,13 @@ class Company extends Model
     protected $fillable = [
         'name',
         'parent_company_id',
+        'status',
     ];
 
     protected $casts = [
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
+        'status' => 'string',
     ];
 
     public function users(): HasMany

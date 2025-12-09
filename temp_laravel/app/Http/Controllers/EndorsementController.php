@@ -4,8 +4,14 @@ namespace App\Http\Controllers;
 
 use App\Models\PolicyEndorsement;
 use App\Models\InsurancePolicy;
+use App\Models\Entity;
+use App\Models\Document;
+use App\Models\AuditLog;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class EndorsementController extends Controller
@@ -17,13 +23,98 @@ class EndorsementController extends Controller
     {
         $query = PolicyEndorsement::with(['policy', 'creator']);
 
-        if ($request->has('policy_id')) {
+        // Search functionality
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('endorsement_number', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%")
+                  ->orWhereHas('policy', function($policyQuery) use ($search) {
+                      $policyQuery->where('policy_number', 'like', "%{$search}%")
+                                ->orWhere('provider', 'like', "%{$search}%");
+                  })
+                  ->orWhereHas('creator', function($creatorQuery) use ($search) {
+                      $creatorQuery->where('name', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        // Policy filter
+        if ($request->filled('policy_id')) {
             $query->where('policy_id', $request->policy_id);
         }
 
-        $endorsements = $query->orderBy('created_at', 'desc')->paginate(15);
+        // Date range filters
+        if ($request->filled('date_from')) {
+            $query->whereDate('effective_date', '>=', $request->date_from);
+        }
 
-        return view('endorsements.index', compact('endorsements'));
+        if ($request->filled('date_to')) {
+            $query->whereDate('effective_date', '<=', $request->date_to);
+        }
+
+        // Description keyword filter
+        if ($request->filled('description_keyword')) {
+            $query->where('description', 'like', '%' . $request->description_keyword . '%');
+        }
+
+        // Sorting
+        $sortBy = $request->get('sort_by', 'created_at');
+        $sortOrder = $request->get('sort_order', 'desc');
+        
+        $allowedSorts = ['endorsement_number', 'effective_date', 'created_at', 'updated_at'];
+        if (in_array($sortBy, $allowedSorts)) {
+            $query->orderBy($sortBy, $sortOrder);
+        } else {
+            $query->orderBy('created_at', 'desc');
+        }
+
+        // Handle export
+        if ($request->get('export') === 'csv') {
+            $endorsements = $query->get();
+            $filename = 'endorsements_' . date('Y-m-d_H-i-s') . '.csv';
+            
+            $headers = [
+                'Content-Type' => 'text/csv',
+                'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            ];
+
+            $callback = function() use ($endorsements) {
+                $file = fopen('php://output', 'w');
+                
+                // CSV headers
+                fputcsv($file, [
+                    'Endorsement Number', 'Policy Number', 'Description', 
+                    'Effective Date', 'Created By', 'Created At'
+                ]);
+
+                foreach ($endorsements as $endorsement) {
+                    fputcsv($file, [
+                        $endorsement->endorsement_number,
+                        $endorsement->policy->policy_number ?? 'N/A',
+                        $endorsement->description,
+                        $endorsement->effective_date,
+                        $endorsement->creator->name ?? 'Unknown',
+                        $endorsement->created_at->format('Y-m-d H:i:s')
+                    ]);
+                }
+                
+                fclose($file);
+            };
+
+            return response()->stream($callback, 200, $headers);
+        }
+
+        // Pagination with configurable per_page
+        $perPage = $request->get('per_page', 20);
+        $perPage = in_array($perPage, [10, 20, 50, 100]) ? $perPage : 20;
+        
+        $endorsements = $query->paginate($perPage)->appends($request->query());
+
+        // Get filter options
+        $policies = InsurancePolicy::select('id', 'policy_number')->orderBy('policy_number')->get();
+        
+        return view('endorsements.index', compact('endorsements', 'policies'));
     }
 
     /**
@@ -32,7 +123,8 @@ class EndorsementController extends Controller
     public function create()
     {
         $policies = InsurancePolicy::where('status', 'ACTIVE')->get();
-        return view('endorsements.create', compact('policies'));
+        $entities = \App\Models\Entity::whereIn('type', ['EMPLOYEE', 'STUDENT', 'VEHICLE', 'SHIP'])->get();
+        return view('endorsements.create', compact('policies', 'entities'));
     }
 
     /**
@@ -45,18 +137,180 @@ class EndorsementController extends Controller
             'endorsement_number' => 'required|string|unique:endorsements,endorsement_number',
             'description' => 'required|string',
             'effective_date' => 'required|date',
+            'entity_ids' => 'nullable|array',
+            'entity_ids.*' => 'exists:entities,id',
+            'documents' => 'nullable|array',
+            'documents.*' => 'file|mimes:pdf,doc,docx,jpg,jpeg,png|max:10240',
+            'document_type' => 'nullable|in:POLICY_DOCUMENT,ENDORSEMENT_DOCUMENT,FINANCIAL_DOCUMENT,OTHER',
         ]);
 
-        PolicyEndorsement::create([
-            'id' => Str::uuid(),
-            'policy_id' => $request->policy_id,
-            'endorsement_number' => $request->endorsement_number,
-            'description' => $request->description,
-            'effective_date' => $request->effective_date,
-            'created_by' => auth()->id(),
-        ]);
+        DB::transaction(function () use ($request) {
+            // Get current policy entities for comparison
+            $policy = InsurancePolicy::with(['entities' => function($query) {
+                $query->wherePivot('status', 'ACTIVE');
+            }])->find($request->policy_id);
+            
+            $currentPolicyEntityIds = $policy->entities->pluck('id')->toArray();
+            $selectedEntityIds = $request->has('entity_ids') ? $request->entity_ids : [];
+            
+            // Determine entities to add vs terminate
+            $entitiesToAdd = array_diff($selectedEntityIds, $currentPolicyEntityIds);
+            $entitiesToTerminate = array_diff($currentPolicyEntityIds, $selectedEntityIds);
+            
+            $endorsement = PolicyEndorsement::create([
+                'id' => Str::uuid(),
+                'policy_id' => $request->policy_id,
+                'endorsement_number' => $request->endorsement_number,
+                'description' => $this->buildEndorsementDescription($request->description, $entitiesToAdd, $entitiesToTerminate, $policy),
+                'effective_date' => $request->effective_date,
+                'created_by' => Auth::id(),
+            ]);
 
-        return redirect()->route('endorsements.index')->with('success', 'Endorsement created successfully');
+            // Create audit log for endorsement creation
+            AuditLog::create([
+                'action' => 'CREATE',
+                'entity_type' => 'PolicyEndorsement',
+                'entity_id' => $endorsement->id,
+                'policy_id' => $request->policy_id,
+                'endorsement_id' => $endorsement->id,
+                'metadata' => [
+                    'endorsement_number' => $endorsement->endorsement_number,
+                    'description' => $endorsement->description,
+                    'effective_date' => $endorsement->effective_date,
+                    'entities_to_add' => $entitiesToAdd,
+                    'entities_to_terminate' => $entitiesToTerminate,
+                    'action' => 'CREATE_ENDORSEMENT',
+                ],
+                'performed_by' => Auth::id(),
+            ]);
+
+            // Attach entities being added to endorsement
+            if (count($entitiesToAdd) > 0) {
+                $endorsement->entities()->attach($entitiesToAdd);
+                
+                // Add new entities to policy
+                $policy->entities()->attach($entitiesToAdd, [
+                    'effective_date' => $request->effective_date,
+                    'status' => 'ACTIVE'
+                ]);
+
+                // Create audit logs for each entity added
+                foreach ($entitiesToAdd as $entityId) {
+                    $entity = Entity::find($entityId);
+                    AuditLog::create([
+                        'action' => 'ADD_ENTITY',
+                        'entity_type' => $entity->type,
+                        'entity_id' => $entityId,
+                        'policy_id' => $request->policy_id,
+                        'endorsement_id' => $endorsement->id,
+                        'metadata' => [
+                            'policy_number' => $policy->policy_number,
+                            'entity_description' => $entity->description,
+                            'action' => 'ADD_ENTITY_VIA_ENDORSEMENT',
+                            'effective_date' => $request->effective_date,
+                            'endorsement_number' => $endorsement->endorsement_number,
+                        ],
+                        'performed_by' => Auth::id(),
+                    ]);
+                }
+            }
+
+            // Handle entity terminations
+            if (count($entitiesToTerminate) > 0) {
+                foreach ($entitiesToTerminate as $entityId) {
+                    $entity = Entity::find($entityId);
+                    
+                    // Update the pivot table to mark as terminated
+                    $policy->entities()->updateExistingPivot($entityId, [
+                        'termination_date' => $request->effective_date,
+                        'status' => 'TERMINATED'
+                    ]);
+
+                    // Create audit log for entity termination
+                    AuditLog::create([
+                        'action' => 'TERMINATE_ENTITY',
+                        'entity_type' => $entity->type,
+                        'entity_id' => $entityId,
+                        'policy_id' => $request->policy_id,
+                        'endorsement_id' => $endorsement->id,
+                        'metadata' => [
+                            'policy_number' => $policy->policy_number,
+                            'entity_description' => $entity->description,
+                            'action' => 'TERMINATE_ENTITY_VIA_ENDORSEMENT',
+                            'termination_date' => $request->effective_date,
+                            'endorsement_number' => $endorsement->endorsement_number,
+                        ],
+                        'performed_by' => Auth::id(),
+                    ]);
+                }
+            }
+
+            // Handle document uploads
+            if ($request->hasFile('documents')) {
+                foreach ($request->file('documents') as $file) {
+                    $fileName = time() . '_' . $file->getClientOriginalName();
+                    $filePath = $file->storeAs('documents/endorsements', $fileName, 'public');
+
+                    Document::create([
+                        'documentable_type' => PolicyEndorsement::class,
+                        'documentable_id' => $endorsement->id,
+                        'uploaded_by' => Auth::id(),
+                        'file_name' => $file->getClientOriginalName(),
+                        'file_path' => $filePath,
+                        'file_type' => $file->getMimeType(),
+                        'document_type' => $request->document_type ?? 'ENDORSEMENT_DOCUMENT',
+                        'uploaded_at' => now(),
+                    ]);
+                }
+            }
+        });
+
+        // Calculate counts for success message
+        $policy = InsurancePolicy::with(['entities' => function($query) {
+            $query->wherePivot('status', 'ACTIVE');
+        }])->find($request->policy_id);
+        
+        $currentPolicyEntityIds = $policy->entities->pluck('id')->toArray();
+        $selectedEntityIds = $request->has('entity_ids') ? $request->entity_ids : [];
+        $entitiesToAdd = array_diff($selectedEntityIds, $currentPolicyEntityIds);
+        $entitiesToTerminate = array_diff($currentPolicyEntityIds, $selectedEntityIds);
+        
+        $addCount = count($entitiesToAdd);
+        $terminateCount = count($entitiesToTerminate);
+        $message = 'Endorsement created successfully';
+        
+        if ($addCount > 0 || $terminateCount > 0) {
+            $details = [];
+            if ($addCount > 0) $details[] = "added {$addCount} entity(ies)";
+            if ($terminateCount > 0) $details[] = "terminated {$terminateCount} entity(ies)";
+            $message .= ' with ' . implode(' and ', $details);
+        }
+
+        return redirect()->route('endorsements.index')->with('success', $message);
+    }
+
+    /**
+     * Build enhanced endorsement description based on entity changes
+     */
+    private function buildEndorsementDescription($baseDescription, $entitiesToAdd, $entitiesToTerminate, $policy)
+    {
+        $description = $baseDescription;
+        
+        if (count($entitiesToAdd) > 0 || count($entitiesToTerminate) > 0) {
+            $description .= "\n\nEntity Changes:";
+            
+            if (count($entitiesToAdd) > 0) {
+                $description .= "\n+ Added: " . count($entitiesToAdd) . " entity(ies)";
+            }
+            
+            if (count($entitiesToTerminate) > 0) {
+                $description .= "\n- Terminated: " . count($entitiesToTerminate) . " entity(ies)";
+            }
+            
+            $description .= "\nPolicy: {$policy->policy_number}";
+        }
+        
+        return $description;
     }
 
     /**
@@ -64,8 +318,9 @@ class EndorsementController extends Controller
      */
     public function show(PolicyEndorsement $endorsement)
     {
-        $endorsement->load(['policy', 'creator']);
-        return view('endorsements.show', compact('endorsement'));
+        $endorsement->load(['policy', 'creator', 'entities', 'documents']);
+        $allEntities = \App\Models\Entity::whereIn('type', ['EMPLOYEE', 'STUDENT', 'VEHICLE', 'SHIP'])->get();
+        return view('endorsements.show', compact('endorsement', 'allEntities'));
     }
 
     /**
@@ -74,7 +329,9 @@ class EndorsementController extends Controller
     public function edit(PolicyEndorsement $endorsement)
     {
         $policies = InsurancePolicy::where('status', 'ACTIVE')->get();
-        return view('endorsements.edit', compact('endorsement', 'policies'));
+        $entities = \App\Models\Entity::whereIn('type', ['EMPLOYEE', 'STUDENT', 'VEHICLE', 'SHIP'])->get();
+        $endorsement->load('entities');
+        return view('endorsements.edit', compact('endorsement', 'policies', 'entities'));
     }
 
     /**
@@ -87,14 +344,66 @@ class EndorsementController extends Controller
             'endorsement_number' => 'required|string|unique:endorsements,endorsement_number,' . $endorsement->id,
             'description' => 'required|string',
             'effective_date' => 'required|date',
+            'entity_ids' => 'nullable|array',
+            'entity_ids.*' => 'exists:entities,id',
+            'documents' => 'nullable|array',
+            'documents.*' => 'file|mimes:pdf,doc,docx,jpg,jpeg,png|max:10240',
+            'document_type' => 'nullable|in:POLICY_DOCUMENT,ENDORSEMENT_DOCUMENT,FINANCIAL_DOCUMENT,OTHER',
         ]);
 
-        $endorsement->update([
-            'policy_id' => $request->policy_id,
-            'endorsement_number' => $request->endorsement_number,
-            'description' => $request->description,
-            'effective_date' => $request->effective_date,
-        ]);
+        DB::transaction(function () use ($request, $endorsement) {
+            // Store original values for audit log
+            $originalValues = $endorsement->only(['policy_id', 'endorsement_number', 'description', 'effective_date']);
+
+            $endorsement->update([
+                'policy_id' => $request->policy_id,
+                'endorsement_number' => $request->endorsement_number,
+                'description' => $request->description,
+                'effective_date' => $request->effective_date,
+            ]);
+
+            // Create audit log for endorsement update
+            AuditLog::create([
+                'action' => 'UPDATE',
+                'entity_type' => 'PolicyEndorsement',
+                'entity_id' => $endorsement->id,
+                'policy_id' => $request->policy_id,
+                'endorsement_id' => $endorsement->id,
+                'metadata' => [
+                    'endorsement_number' => $endorsement->endorsement_number,
+                    'changes' => $request->only(['policy_id', 'endorsement_number', 'description', 'effective_date']),
+                    'original_values' => $originalValues,
+                    'action' => 'UPDATE_ENDORSEMENT',
+                ],
+                'performed_by' => Auth::id(),
+            ]);
+
+            // Sync entities
+            if ($request->has('entity_ids')) {
+                $endorsement->entities()->sync($request->entity_ids);
+            } else {
+                $endorsement->entities()->detach();
+            }
+
+            // Handle document uploads
+            if ($request->hasFile('documents')) {
+                foreach ($request->file('documents') as $file) {
+                    $fileName = time() . '_' . $file->getClientOriginalName();
+                    $filePath = $file->storeAs('documents/endorsements', $fileName, 'public');
+
+                    Document::create([
+                        'documentable_type' => PolicyEndorsement::class,
+                        'documentable_id' => $endorsement->id,
+                        'uploaded_by' => Auth::id(),
+                        'file_name' => $file->getClientOriginalName(),
+                        'file_path' => $filePath,
+                        'file_type' => $file->getMimeType(),
+                        'document_type' => $request->document_type ?? 'ENDORSEMENT_DOCUMENT',
+                        'uploaded_at' => now(),
+                    ]);
+                }
+            }
+        });
 
         return redirect()->route('endorsements.index')->with('success', 'Endorsement updated successfully');
     }
@@ -104,11 +413,153 @@ class EndorsementController extends Controller
      */
     public function destroy(PolicyEndorsement $endorsement)
     {
+        // Create audit log before deletion
+        AuditLog::create([
+            'action' => 'DELETE',
+            'entity_type' => 'PolicyEndorsement',
+            'entity_id' => $endorsement->id,
+            'policy_id' => $endorsement->policy_id,
+            'endorsement_id' => $endorsement->id,
+            'metadata' => [
+                'endorsement_number' => $endorsement->endorsement_number,
+                'description' => $endorsement->description,
+                'effective_date' => $endorsement->effective_date,
+                'deletion_reason' => 'Manual deletion by user',
+            ],
+            'performed_by' => Auth::id(),
+        ]);
+
         $endorsement->delete();
         return redirect()->route('endorsements.index')->with('success', 'Endorsement deleted successfully');
     }
 
+    /**
+     * Add entities to endorsement.
+     */
+    public function addEntities(Request $request, PolicyEndorsement $endorsement)
+    {
+        $request->validate([
+            'entity_ids' => 'required|array|min:1',
+            'entity_ids.*' => 'exists:entities,id',
+        ]);
+
+        $entityIds = $request->entity_ids;
+        $existingIds = $endorsement->entities()->pluck('entities.id')->toArray();
+        $newIds = array_diff($entityIds, $existingIds);
+
+        if (count($newIds) > 0) {
+            $endorsement->entities()->attach($newIds);
+            $message = "Added " . count($newIds) . " entity(ies) to endorsement successfully";
+            if (count($entityIds) > count($newIds)) {
+                $message .= ". " . (count($entityIds) - count($newIds)) . " entity(ies) were already associated.";
+            }
+        } else {
+            $message = "All selected entities are already associated with this endorsement.";
+        }
+
+        return redirect()->back()->with('success', $message);
+    }
+
+    /**
+     * Remove entity from endorsement.
+     */
+    public function removeEntity(Request $request, PolicyEndorsement $endorsement)
+    {
+        $request->validate([
+            'entity_id' => 'required_without:entity_ids|exists:entities,id',
+            'entity_ids' => 'nullable|array',
+            'entity_ids.*' => 'exists:entities,id',
+        ]);
+
+        if ($request->has('entity_ids') && is_array($request->entity_ids) && count($request->entity_ids) > 0) {
+            // Bulk remove
+            $endorsement->entities()->detach($request->entity_ids);
+            $count = count($request->entity_ids);
+            return redirect()->back()->with('success', "Successfully removed {$count} entity(ies) from endorsement");
+        } else {
+            // Single remove
+            $endorsement->entities()->detach($request->entity_id);
+            return redirect()->back()->with('success', 'Entity removed from endorsement successfully');
+        }
+    }
+
+    public function uploadDocuments(Request $request, PolicyEndorsement $endorsement)
+    {
+        $request->validate([
+            'documents' => 'required|array',
+            'documents.*' => 'required|file|mimes:pdf,doc,docx,jpg,jpeg,png|max:10240',
+            'document_type' => 'required|in:POLICY_DOCUMENT,ENDORSEMENT_DOCUMENT,FINANCIAL_DOCUMENT,OTHER',
+        ]);
+
+        $uploadedCount = 0;
+
+        foreach ($request->file('documents') as $file) {
+            $fileName = time() . '_' . $file->getClientOriginalName();
+            $filePath = $file->storeAs('documents/endorsements', $fileName, 'public');
+
+            Document::create([
+                'documentable_type' => PolicyEndorsement::class,
+                'documentable_id' => $endorsement->id,
+                'uploaded_by' => Auth::id(),
+                'file_name' => $file->getClientOriginalName(),
+                'file_path' => $filePath,
+                'file_type' => $file->getMimeType(),
+                'document_type' => $request->document_type,
+                'uploaded_at' => now(),
+            ]);
+
+            $uploadedCount++;
+        }
+
+        return redirect()->back()->with('success', "Successfully uploaded {$uploadedCount} document(s)");
+    }
+
     // API Methods
+    public function getPolicyEntities(Request $request)
+    {
+        // Get policy_id from route parameter, not request body
+        $policyId = $request->route('policy_id');
+        
+        if (!$policyId) {
+            return response()->json(['error' => 'Policy ID is required'], 400);
+        }
+
+        $policy = InsurancePolicy::find($policyId);
+        
+        if (!$policy) {
+            return response()->json(['error' => 'Policy not found'], 404);
+        }
+
+        // Get ONLY ACTIVE entities using proper relationship query
+        $activeEntities = $policy->entities()
+            ->wherePivot('status', 'ACTIVE')
+            ->get();
+
+        // Also get total count for comparison
+        $totalEntities = $policy->entities()->count();
+
+        // Debug logging
+        error_log("Policy {$policy->policy_number} entities: Total attached: {$totalEntities}, Active: {$activeEntities->count()}");
+
+        $entities = $activeEntities->map(function($entity) {
+            return [
+                'id' => $entity->id,
+                'description' => $entity->description,
+                'type' => $entity->type
+            ];
+        });
+
+        return response()->json([
+            'entities' => $entities,
+            'policy_number' => $policy->policy_number,
+            'total_entities' => $entities->count(),
+            'debug_info' => [
+                'total_attached' => $totalEntities,
+                'active_count' => $activeEntities->count()
+            ]
+        ]);
+    }
+
     public function apiIndex(Request $request)
     {
         $query = PolicyEndorsement::with(['policy', 'creator']);
@@ -169,5 +620,55 @@ class EndorsementController extends Controller
     {
         $endorsement->delete();
         return response()->json(['message' => 'Endorsement deleted']);
+    }
+
+    /**
+     * Bulk actions for endorsements
+     */
+    public function bulkAction(Request $request)
+    {
+        $request->validate([
+            'action' => 'required|string',
+            'endorsement_ids' => 'required|array|min:1',
+            'endorsement_ids.*' => 'exists:endorsements,id',
+        ]);
+
+        $action = $request->action;
+        $endorsementIds = $request->endorsement_ids;
+        $count = count($endorsementIds);
+
+        DB::transaction(function () use ($action, $endorsementIds, $count) {
+            switch ($action) {
+                case 'delete':
+                    // Create audit logs before deletion
+                    foreach ($endorsementIds as $endorsementId) {
+                        $endorsement = PolicyEndorsement::find($endorsementId);
+                        AuditLog::create([
+                            'action' => 'DELETE',
+                            'entity_type' => 'PolicyEndorsement',
+                            'entity_id' => $endorsementId,
+                            'policy_id' => $endorsement->policy_id,
+                            'endorsement_id' => $endorsementId,
+                            'metadata' => [
+                                'endorsement_number' => $endorsement->endorsement_number,
+                                'description' => $endorsement->description,
+                                'effective_date' => $endorsement->effective_date,
+                                'bulk_action' => true,
+                                'deletion_reason' => 'Bulk deletion by user',
+                            ],
+                            'performed_by' => Auth::id(),
+                        ]);
+                    }
+                    PolicyEndorsement::whereIn('id', $endorsementIds)->delete();
+                    break;
+            }
+        });
+
+        $actionText = [
+            'delete' => 'deleted',
+        ];
+
+        $message = "Successfully {$actionText[$action]} {$count} endorsement(s)";
+        return redirect()->back()->with('success', $message);
     }
 }

@@ -14,13 +14,19 @@ class Student extends Model
         'company_id',
         'student_id',
         'name',
-        'status',
         'course',
-        'year_of_study',
+        'email',
+        'phone',
+        'dob',
+        'gender',
+        'rank',
+        'age',
+        'status',
     ];
 
     protected $casts = [
-        'year_of_study' => 'integer',
+        'age' => 'integer',
+        'dob' => 'date',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];

@@ -5,8 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\InsurancePolicy;
 use App\Models\PolicyEndorsement;
 use App\Models\Document;
+use App\Models\AuditLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class InsurancePolicyController extends Controller
@@ -57,6 +59,9 @@ class InsurancePolicyController extends Controller
             'premium_amount' => 'required|numeric|min:0',
             'created_by' => 'required|uuid|exists:users,id',
             'status' => 'in:ACTIVE,EXPIRED,UNDER_REVIEW,CANCELLED',
+            'documents' => 'nullable|array',
+            'documents.*' => 'file|mimes:pdf,doc,docx,jpg,jpeg,png|max:10240',
+            'document_type' => 'nullable|in:POLICY_DOCUMENT,ENDORSEMENT_DOCUMENT,FINANCIAL_DOCUMENT,OTHER',
         ]);
 
         $policy = InsurancePolicy::create([
@@ -73,7 +78,44 @@ class InsurancePolicyController extends Controller
             'created_by' => $request->created_by,
         ]);
 
-        return response()->json($policy, 201);
+        // Create audit log for policy creation
+        AuditLog::create([
+            'action' => 'CREATE',
+            'entity_type' => 'InsurancePolicy',
+            'entity_id' => $policy->id,
+            'policy_id' => $policy->id,
+            'metadata' => [
+                'policy_number' => $policy->policy_number,
+                'insurance_type' => $policy->insurance_type,
+                'provider' => $policy->provider,
+                'sum_insured' => $policy->sum_insured,
+                'premium_amount' => $policy->premium_amount,
+                'status' => $policy->status,
+                'entity_id' => $request->entity_id,
+            ],
+            'performed_by' => $request->created_by,
+        ]);
+
+        // Handle document uploads
+        if ($request->hasFile('documents')) {
+            foreach ($request->file('documents') as $file) {
+                $fileName = time() . '_' . $file->getClientOriginalName();
+                $filePath = $file->storeAs('documents/policies', $fileName, 'public');
+
+                Document::create([
+                    'documentable_type' => InsurancePolicy::class,
+                    'documentable_id' => $policy->id,
+                    'uploaded_by' => $request->created_by,
+                    'file_name' => $file->getClientOriginalName(),
+                    'file_path' => $filePath,
+                    'file_type' => $file->getMimeType(),
+                    'document_type' => $request->document_type ?? 'POLICY_DOCUMENT',
+                    'uploaded_at' => now(),
+                ]);
+            }
+        }
+
+        return response()->json($policy->load('documents'), 201);
     }
 
     /**
@@ -104,7 +146,25 @@ class InsurancePolicyController extends Controller
         ]);
 
         $policy = InsurancePolicy::findOrFail($id);
+        
+        // Store original values for audit log
+        $originalValues = $policy->only(['entity_id', 'policy_number', 'insurance_type', 'provider', 'start_date', 'end_date', 'sum_insured', 'premium_amount', 'status']);
+        
         $policy->update($request->all());
+
+        // Create audit log for policy update
+        AuditLog::create([
+            'action' => 'UPDATE',
+            'entity_type' => 'InsurancePolicy',
+            'entity_id' => $policy->id,
+            'policy_id' => $policy->id,
+            'metadata' => [
+                'policy_number' => $policy->policy_number,
+                'changes' => $request->only(['entity_id', 'policy_number', 'insurance_type', 'provider', 'start_date', 'end_date', 'sum_insured', 'premium_amount', 'status']),
+                'original_values' => $originalValues,
+            ],
+            'performed_by' => $request->created_by,
+        ]);
 
         return response()->json($policy);
     }
@@ -119,7 +179,23 @@ class InsurancePolicyController extends Controller
         ]);
 
         $policy = InsurancePolicy::findOrFail($id);
+        $originalStatus = $policy->status;
         $policy->update(['status' => $request->status]);
+
+        // Create audit log for status update
+        AuditLog::create([
+            'action' => 'STATUS_CHANGE',
+            'entity_type' => 'InsurancePolicy',
+            'entity_id' => $policy->id,
+            'policy_id' => $policy->id,
+            'metadata' => [
+                'policy_number' => $policy->policy_number,
+                'original_status' => $originalStatus,
+                'new_status' => $request->status,
+                'change_reason' => 'Status update via API',
+            ],
+            'performed_by' => $request->created_by ?? $policy->created_by,
+        ]);
 
         return response()->json(['message' => 'Policy status updated']);
     }
@@ -142,17 +218,72 @@ class InsurancePolicyController extends Controller
     }
 
     /**
+     * Upload documents for the policy.
+     */
+    public function uploadDocuments(Request $request, string $id)
+    {
+        $request->validate([
+            'documents' => 'required|array',
+            'documents.*' => 'required|file|mimes:pdf,doc,docx,jpg,jpeg,png|max:10240', // 10MB max
+            'uploaded_by' => 'required|uuid|exists:users,id',
+            'document_type' => 'required|in:POLICY_DOCUMENT,ENDORSEMENT_DOCUMENT,FINANCIAL_DOCUMENT,OTHER',
+        ]);
+
+        $policy = InsurancePolicy::findOrFail($id);
+        $uploadedDocuments = [];
+
+        foreach ($request->file('documents') as $file) {
+            $fileName = time() . '_' . $file->getClientOriginalName();
+            $filePath = $file->storeAs('documents/policies', $fileName, 'public');
+
+            $document = Document::create([
+                'documentable_type' => InsurancePolicy::class,
+                'documentable_id' => $policy->id,
+                'uploaded_by' => $request->uploaded_by,
+                'file_name' => $file->getClientOriginalName(),
+                'file_path' => $filePath,
+                'file_type' => $file->getMimeType(),
+                'document_type' => $request->document_type,
+                'uploaded_at' => now(),
+            ]);
+
+            $uploadedDocuments[] = $document;
+        }
+
+        return response()->json($uploadedDocuments, 201);
+    }
+
+    /**
      * Remove the specified resource from storage.
      */
     public function destroy(string $id)
     {
         DB::beginTransaction();
         try {
+            $policy = InsurancePolicy::findOrFail($id);
+            
+            // Create audit log before deletion
+            AuditLog::create([
+                'action' => 'DELETE',
+                'entity_type' => 'InsurancePolicy',
+                'entity_id' => $policy->id,
+                'policy_id' => $policy->id,
+                'metadata' => [
+                    'policy_number' => $policy->policy_number,
+                    'insurance_type' => $policy->insurance_type,
+                    'provider' => $policy->provider,
+                    'status' => $policy->status,
+                    'deletion_reason' => 'Policy deletion via API',
+                ],
+                'performed_by' => $request->created_by ?? $policy->created_by,
+            ]);
+
             // Delete related documents and endorsements
             PolicyEndorsement::where('policy_id', $id)->delete();
-            Document::where('policy_id', $id)->delete();
+            Document::where('documentable_type', InsurancePolicy::class)
+                ->where('documentable_id', $id)
+                ->delete();
 
-            $policy = InsurancePolicy::findOrFail($id);
             $policy->delete();
 
             DB::commit();

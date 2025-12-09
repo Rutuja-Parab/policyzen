@@ -26,13 +26,14 @@ class CompanyController extends Controller
     {
         $request->validate([
             'name' => 'required|string',
-            'parent_company_id' => 'nullable|uuid|exists:companies,id',
+            'parent_company_id' => 'nullable|exists:companies,id',
+            'status' => 'required|in:active,inactive',
         ]);
 
         $company = Company::create([
-            'id' => Str::uuid(),
             'name' => $request->name,
             'parent_company_id' => $request->parent_company_id,
+            'status' => $request->status,
         ]);
 
         return response()->json($company, 201);
@@ -55,12 +56,14 @@ class CompanyController extends Controller
         $request->validate([
             'name' => 'required|string',
             'parent_company_id' => 'nullable|uuid|exists:companies,id',
+            'status' => 'required|in:active,inactive',
         ]);
 
         $company = Company::findOrFail($id);
         $company->update([
             'name' => $request->name,
             'parent_company_id' => $request->parent_company_id,
+            'status' => $request->status,
         ]);
 
         return response()->json($company);
@@ -94,19 +97,19 @@ class CompanyController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'parent_company_id' => 'nullable|uuid|exists:companies,id',
+            'parent_company_id' => 'nullable|exists:companies,id',
+            'status' => 'required|in:active,inactive',
         ]);
 
         DB::transaction(function () use ($request) {
             $company = Company::create([
-                'id' => Str::uuid(),
                 'name' => $request->name,
                 'parent_company_id' => $request->parent_company_id,
+                'status' => $request->status,
             ]);
 
             // Create entity record for insurance coverage
             Entity::create([
-                'id' => Str::uuid(),
                 'company_id' => $company->id,
                 'type' => 'COMPANY',
                 'entity_id' => $company->id,
@@ -133,13 +136,15 @@ class CompanyController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'parent_company_id' => 'nullable|uuid|exists:companies,id',
+            'parent_company_id' => 'nullable|exists:companies,id',
+            'status' => 'required|in:active,inactive',
         ]);
 
         DB::transaction(function () use ($request, $company) {
             $company->update([
                 'name' => $request->name,
                 'parent_company_id' => $request->parent_company_id,
+                'status' => $request->status,
             ]);
 
             // Update entity description
