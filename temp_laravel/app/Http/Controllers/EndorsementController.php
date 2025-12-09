@@ -7,10 +7,10 @@ use App\Models\InsurancePolicy;
 use App\Models\Entity;
 use App\Models\Document;
 use App\Models\AuditLog;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
@@ -132,6 +132,13 @@ class EndorsementController extends Controller
      */
     public function store(Request $request)
     {
+        // Ensure no duplicate entity_ids in the request
+        if ($request->has('entity_ids')) {
+            $request->merge([
+                'entity_ids' => array_unique($request->entity_ids)
+            ]);
+        }
+
         $request->validate([
             'policy_id' => 'required|exists:policies,id',
             'endorsement_number' => 'required|string|unique:endorsements,endorsement_number',
@@ -151,7 +158,7 @@ class EndorsementController extends Controller
             }])->find($request->policy_id);
             
             $currentPolicyEntityIds = $policy->entities->pluck('id')->toArray();
-            $selectedEntityIds = $request->has('entity_ids') ? $request->entity_ids : [];
+            $selectedEntityIds = $request->has('entity_ids') ? array_unique($request->entity_ids) : [];
             
             // Determine entities to add vs terminate
             $entitiesToAdd = array_diff($selectedEntityIds, $currentPolicyEntityIds);
@@ -263,6 +270,35 @@ class EndorsementController extends Controller
                     ]);
                 }
             }
+
+            // Calculate counts for success message
+            $policy = InsurancePolicy::with(['entities' => function($query) {
+                $query->wherePivot('status', 'ACTIVE');
+            }])->find($request->policy_id);
+            
+            $currentPolicyEntityIds = $policy->entities->pluck('id')->toArray();
+            $selectedEntityIds = $request->has('entity_ids') ? array_unique($request->entity_ids) : [];
+            $entitiesToAdd = array_diff($selectedEntityIds, $currentPolicyEntityIds);
+            $entitiesToTerminate = array_diff($currentPolicyEntityIds, $selectedEntityIds);
+            
+            $addCount = count($entitiesToAdd);
+            $terminateCount = count($entitiesToTerminate);
+
+            // Create notification
+            NotificationService::forEndorsement(
+                'CREATE',
+                $endorsement->endorsement_number,
+                $policy->policy_number,
+                $endorsement->description,
+                [
+                    'endorsement_id' => $endorsement->id,
+                    'policy_id' => $request->policy_id,
+                    'entities_added' => $addCount,
+                    'entities_terminated' => $terminateCount,
+                    'entity_ids' => $selectedEntityIds,
+                    'effective_date' => $request->effective_date,
+                ]
+            );
         });
 
         // Calculate counts for success message
@@ -271,7 +307,7 @@ class EndorsementController extends Controller
         }])->find($request->policy_id);
         
         $currentPolicyEntityIds = $policy->entities->pluck('id')->toArray();
-        $selectedEntityIds = $request->has('entity_ids') ? $request->entity_ids : [];
+        $selectedEntityIds = $request->has('entity_ids') ? array_unique($request->entity_ids) : [];
         $entitiesToAdd = array_diff($selectedEntityIds, $currentPolicyEntityIds);
         $entitiesToTerminate = array_diff($currentPolicyEntityIds, $selectedEntityIds);
         
@@ -339,6 +375,13 @@ class EndorsementController extends Controller
      */
     public function update(Request $request, PolicyEndorsement $endorsement)
     {
+        // Ensure no duplicate entity_ids in the request
+        if ($request->has('entity_ids')) {
+            $request->merge([
+                'entity_ids' => array_unique($request->entity_ids)
+            ]);
+        }
+
         $request->validate([
             'policy_id' => 'required|exists:policies,id',
             'endorsement_number' => 'required|string|unique:endorsements,endorsement_number,' . $endorsement->id,
@@ -380,7 +423,7 @@ class EndorsementController extends Controller
 
             // Sync entities
             if ($request->has('entity_ids')) {
-                $endorsement->entities()->sync($request->entity_ids);
+                $endorsement->entities()->sync(array_unique($request->entity_ids));
             } else {
                 $endorsement->entities()->detach();
             }
@@ -413,6 +456,10 @@ class EndorsementController extends Controller
      */
     public function destroy(PolicyEndorsement $endorsement)
     {
+        $endorsementNumber = $endorsement->endorsement_number;
+        $policyNumber = $endorsement->policy->policy_number ?? 'Unknown';
+        $description = $endorsement->description;
+
         // Create audit log before deletion
         AuditLog::create([
             'action' => 'DELETE',
@@ -430,6 +477,20 @@ class EndorsementController extends Controller
         ]);
 
         $endorsement->delete();
+
+        // Create notification
+        NotificationService::forEndorsement(
+            'DELETE',
+            $endorsementNumber,
+            $policyNumber,
+            $description,
+            [
+                'endorsement_id' => $endorsement->id,
+                'policy_id' => $endorsement->policy_id,
+                'deletion_reason' => 'Manual deletion by user',
+            ]
+        );
+
         return redirect()->route('endorsements.index')->with('success', 'Endorsement deleted successfully');
     }
 
@@ -443,7 +504,7 @@ class EndorsementController extends Controller
             'entity_ids.*' => 'exists:entities,id',
         ]);
 
-        $entityIds = $request->entity_ids;
+        $entityIds = array_unique($request->entity_ids);
         $existingIds = $endorsement->entities()->pluck('entities.id')->toArray();
         $newIds = array_diff($entityIds, $existingIds);
 
@@ -473,8 +534,9 @@ class EndorsementController extends Controller
 
         if ($request->has('entity_ids') && is_array($request->entity_ids) && count($request->entity_ids) > 0) {
             // Bulk remove
-            $endorsement->entities()->detach($request->entity_ids);
-            $count = count($request->entity_ids);
+            $entityIds = array_unique($request->entity_ids);
+            $endorsement->entities()->detach($entityIds);
+            $count = count($entityIds);
             return redirect()->back()->with('success', "Successfully removed {$count} entity(ies) from endorsement");
         } else {
             // Single remove

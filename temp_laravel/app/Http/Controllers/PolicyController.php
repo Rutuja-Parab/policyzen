@@ -7,6 +7,7 @@ use App\Models\Entity;
 use App\Models\PolicyEndorsement;
 use App\Models\Document;
 use App\Models\AuditLog;
+use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -142,6 +143,11 @@ class PolicyController extends Controller
 
     public function store(Request $request)
     {
+        // Ensure no duplicate entity_ids in the request
+        $request->merge([
+            'entity_ids' => array_unique($request->entity_ids)
+        ]);
+
         $request->validate([
             'entity_ids' => 'required|array|min:1',
             'entity_ids.*' => 'exists:entities,id',
@@ -169,9 +175,7 @@ class PolicyController extends Controller
             'premium_amount.regex' => 'Premium amount must be a valid amount with maximum 2 decimal places',
         ]);
 
-        $policy = null;
-
-        DB::transaction(function () use ($request, &$policy) {
+        DB::transaction(function () use ($request) {
             // Create the policy
             $policy = InsurancePolicy::create([
                 'policy_number' => $request->policy_number,
@@ -203,10 +207,15 @@ class PolicyController extends Controller
             ]);
 
             // Attach entities to the policy and create endorsements
-            $entityIds = $request->entity_ids;
+            $entityIds = array_unique($request->entity_ids); // Remove duplicates
             $effectiveDate = now()->toDateString();
 
             foreach ($entityIds as $entityId) {
+                // Check if entity is already attached to this policy
+                if ($policy->entities()->where('entities.id', $entityId)->wherePivot('status', 'ACTIVE')->exists()) {
+                    continue; // Skip if already attached
+                }
+
                 // Attach entity to policy
                 $policy->entities()->attach($entityId, [
                     'effective_date' => $effectiveDate,
@@ -258,6 +267,23 @@ class PolicyController extends Controller
                     ]);
                 }
             }
+
+            // Create notification
+            NotificationService::forPolicy(
+                'CREATE',
+                $policy->policy_number,
+                $policy->insurance_type,
+                $policy->provider,
+                [
+                    'policy_id' => $policy->id,
+                    'entity_ids' => $request->entity_ids,
+                    'entity_count' => count($request->entity_ids),
+                    'sum_insured' => $policy->sum_insured,
+                    'premium_amount' => $policy->premium_amount,
+                    'start_date' => $policy->start_date,
+                    'end_date' => $policy->end_date,
+                ]
+            );
         });
 
         return redirect()->route('policies.index')->with('success', 'Group policy created successfully with ' . count($request->entity_ids) . ' covered entities');
@@ -360,8 +386,13 @@ class PolicyController extends Controller
             ->pluck('entities.id')
             ->toArray();
 
+        // Ensure no duplicate entity_ids in the request
+        $request->merge([
+            'entity_ids' => array_unique($request->entity_ids)
+        ]);
+
         // Determine changes in entities
-        $newEntityIds = $request->entity_ids;
+        $newEntityIds = array_unique($request->entity_ids); // Additional safety
         $entitiesToAdd = array_diff($newEntityIds, $currentEntityIds);
         $entitiesToRemove = array_diff($currentEntityIds, $newEntityIds);
         $entitiesToKeep = array_intersect($newEntityIds, $currentEntityIds);
@@ -490,6 +521,22 @@ class PolicyController extends Controller
                     ]);
                 }
             }
+
+            // Create notification for policy update
+            NotificationService::forPolicy(
+                'UPDATE',
+                $policy->policy_number,
+                $policy->insurance_type,
+                $policy->provider,
+                [
+                    'policy_id' => $policy->id,
+                    'original_values' => $originalValues,
+                    'changes' => $request->only(['policy_number', 'insurance_type', 'provider', 'start_date', 'end_date', 'sum_insured', 'premium_amount', 'status']),
+                    'entities_added' => count($entitiesToAdd),
+                    'entities_removed' => count($entitiesToRemove),
+                    'entities_kept' => count($entitiesToKeep),
+                ]
+            );
         });
 
         // Prepare success message with entity change details
@@ -510,6 +557,10 @@ class PolicyController extends Controller
 
     public function destroy(InsurancePolicy $policy)
     {
+        $policyNumber = $policy->policy_number;
+        $insuranceType = $policy->insurance_type;
+        $provider = $policy->provider;
+
         // Create audit log before deletion
         AuditLog::create([
             'action' => 'DELETE',
@@ -527,6 +578,19 @@ class PolicyController extends Controller
         ]);
 
         $policy->delete();
+
+        // Create notification
+        NotificationService::forPolicy(
+            'DELETE',
+            $policyNumber,
+            $insuranceType,
+            $provider,
+            [
+                'policy_id' => $policy->id,
+                'deletion_reason' => 'Manual deletion by user',
+            ]
+        );
+
         return redirect()->route('policies.index')->with('success', 'Policy deleted successfully');
     }
 
@@ -537,7 +601,9 @@ class PolicyController extends Controller
         ]);
 
         $originalStatus = $policy->status;
-        $policy->update(['status' => $request->status]);
+        $newStatus = $request->status;
+        
+        $policy->update(['status' => $newStatus]);
 
         // Create audit log for status update
         AuditLog::create([
@@ -548,11 +614,25 @@ class PolicyController extends Controller
             'metadata' => [
                 'policy_number' => $policy->policy_number,
                 'original_status' => $originalStatus,
-                'new_status' => $request->status,
+                'new_status' => $newStatus,
                 'change_reason' => 'Status update by user',
             ],
             'performed_by' => Auth::id(),
         ]);
+
+        // Create notification
+        NotificationService::forPolicy(
+            'STATUS_CHANGE',
+            $policy->policy_number,
+            $policy->insurance_type,
+            $policy->provider,
+            [
+                'policy_id' => $policy->id,
+                'original_status' => $originalStatus,
+                'new_status' => $newStatus,
+                'change_reason' => 'Status update by user',
+            ]
+        );
 
         return redirect()->route('policies.index')->with('success', 'Policy status updated successfully');
     }
@@ -564,7 +644,12 @@ class PolicyController extends Controller
             'entity_ids.*' => 'exists:entities,id',
         ]);
 
-        $entityIds = $request->entity_ids;
+        // Ensure no duplicate entity_ids in the request
+        $request->merge([
+            'entity_ids' => array_unique($request->entity_ids)
+        ]);
+
+        $entityIds = array_unique($request->entity_ids); // Additional safety
         $addedCount = 0;
         $skippedCount = 0;
 
@@ -573,7 +658,7 @@ class PolicyController extends Controller
 
             foreach ($entityIds as $entityId) {
                 // Check if entity is already attached to this policy
-                if ($policy->entities()->where('entity_id', $entityId)->wherePivot('status', 'ACTIVE')->exists()) {
+                if ($policy->entities()->where('entities.id', $entityId)->wherePivot('status', 'ACTIVE')->exists()) {
                     $skippedCount++;
                     continue;
                 }

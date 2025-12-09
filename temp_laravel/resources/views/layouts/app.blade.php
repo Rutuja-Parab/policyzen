@@ -6,6 +6,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'PolicyZen - Insurance Policy Management')</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     @stack('styles')
 </head>
@@ -117,6 +118,10 @@
                     <h1 class="text-2xl font-bold text-gray-900">@yield('page-title', 'Dashboard')</h1>
                     <div class="flex items-center space-x-4">
                         @yield('header-actions')
+                        
+                        <!-- Notification Bell -->
+                        <x-notification-bell />
+                        
                         <!-- User info and logout -->
                         <div class="flex items-center space-x-4">
                             <div class="text-right">

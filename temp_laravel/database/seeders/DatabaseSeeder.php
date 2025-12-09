@@ -145,5 +145,79 @@ class DatabaseSeeder extends Seeder
             'created_at' => now(),
             'updated_at' => now(),
         ]);
+
+        // Create sample notifications for testing the notification bell
+        DB::table('notifications')->insert([
+            [
+                'user_id' => $user,
+                'type' => 'POLICY_EXPIRY_WARNING',
+                'title' => 'Policy Expiring Soon',
+                'message' => 'Policy POL001 (HEALTH) with HealthCare Plus expires in 7 days. Please renew soon.',
+                'priority' => 'MEDIUM',
+                'data' => json_encode([
+                    'policy_id' => $policy2,
+                    'policy_number' => 'POL001',
+                    'insurance_type' => 'HEALTH',
+                    'provider' => 'HealthCare Plus'
+                ]),
+                'read_at' => null,
+                'expires_at' => now()->addDays(30),
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'user_id' => $user,
+                'type' => 'ENDORSEMENT_EXPIRY_WARNING',
+                'title' => 'Endorsement Effective Soon',
+                'message' => 'Endorsement END001 for policy POL001 becomes effective in 2 days.',
+                'priority' => 'HIGH',
+                'data' => json_encode([
+                    'endorsement_id' => 1,
+                    'policy_id' => $policy2,
+                    'endorsement_number' => 'END001'
+                ]),
+                'read_at' => null,
+                'expires_at' => now()->addDays(7),
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'user_id' => $user,
+                'type' => 'ENTITY_CREATED',
+                'title' => 'New Employee Added',
+                'message' => 'New employee "John Doe" has been added to your company.',
+                'priority' => 'LOW',
+                'data' => json_encode([
+                    'entity_type' => 'EMPLOYEE',
+                    'entity_name' => 'John Doe',
+                    'entity_id' => 999
+                ]),
+                'read_at' => null,
+                'expires_at' => now()->addDays(30),
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'user_id' => $user,
+                'type' => 'POLICY_EXPIRED',
+                'title' => 'Policy Expired',
+                'message' => 'Policy POL002 (ACCIDENT) with SafeGuard Insurance expired 5 days ago. Immediate renewal required.',
+                'priority' => 'CRITICAL',
+                'data' => json_encode([
+                    'policy_id' => $policy1,
+                    'policy_number' => 'POL002',
+                    'insurance_type' => 'ACCIDENT',
+                    'provider' => 'SafeGuard Insurance'
+                ]),
+                'read_at' => null,
+                'expires_at' => now()->addDays(30),
+                'is_active' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+        ]);
     }
 }

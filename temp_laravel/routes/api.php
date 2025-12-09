@@ -11,6 +11,7 @@ use App\Http\Controllers\EntityController;
 use App\Http\Controllers\InsurancePolicyController;
 use App\Http\Controllers\PolicyEndorsementController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\SearchController;
 use Illuminate\Support\Facades\Route;
 
