@@ -76,7 +76,7 @@
                         <div class="space-y-1 text-center">
                             <i class="fas fa-file-csv text-4xl text-gray-400 mb-2"></i>
                             <div class="flex text-sm text-gray-600">
-                                <label for="csv_file" class="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500">
+                                <label for="csv_file" class="relative cursor-pointer bg-white rounded-md font-medium text-[#f06e11] hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500">
                                     <span>Upload CSV file</span>
                                     <input id="csv_file" name="csv_file" type="file" accept=".csv,.txt" required class="sr-only" onchange="updateFileName(this)">
                                 </label>
@@ -93,7 +93,7 @@
                 <div class="space-y-6">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Company *</label>
-                        <select name="company_id" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <select name="company_id" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent">
                             <option value="">Select Company</option>
                             @foreach($companies as $company)
                             <option value="{{ $company->id }}" {{ old('company_id') == $company->id ? 'selected' : '' }}>
@@ -106,7 +106,7 @@
 
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Course</label>
-                        <select name="course_id" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <select name="course_id" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent">
                             <option value="">Select Course (optional)</option>
                             @foreach($courses as $course)
                             <option value="{{ $course->id }}" {{ old('course_id') == $course->id ? 'selected' : '' }}>
@@ -122,7 +122,7 @@
                 <a href="{{ route('entities.students.index') }}" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400">
                     Cancel
                 </a>
-                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                <button type="submit" class="bg-[#f06e11] text-white px-4 py-2 rounded-lg hover:bg-[#f28e1f]">
                     <i class="fas fa-upload mr-2"></i>Import Students
                 </button>
             </div>

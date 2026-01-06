@@ -36,7 +36,7 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Policy *</label>
-                    <select name="policy_id" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <select name="policy_id" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent">
                         <option value="">Select Policy</option>
                         @foreach($policies as $policy)
                         <option value="{{ $policy->id }}" {{ old('policy_id', $endorsement->policy_id) == $policy->id ? 'selected' : '' }}>
@@ -48,17 +48,17 @@
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Endorsement Number *</label>
-                    <input type="text" name="endorsement_number" value="{{ old('endorsement_number', $endorsement->endorsement_number) }}" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <input type="text" name="endorsement_number" value="{{ old('endorsement_number', $endorsement->endorsement_number) }}" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent">
                 </div>
 
                 <div class="md:col-span-2">
                     <label class="block text-sm font-medium text-gray-700 mb-2">Description *</label>
-                    <textarea name="description" rows="3" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">{{ old('description', $endorsement->description) }}</textarea>
+                    <textarea name="description" rows="3" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent">{{ old('description', $endorsement->description) }}</textarea>
                 </div>
 
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-2">Effective Date *</label>
-                                    <input type="date" name="effective_date" value="{{ old('effective_date', $endorsement->effective_date ? $endorsement->effective_date->format('Y-m-d') : '') }}" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <input type="date" name="effective_date" value="{{ old('effective_date', $endorsement->effective_date ? $endorsement->effective_date->format('Y-m-d') : '') }}" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent">
                                 </div>
 
                                 <div class="md:col-span-2">
@@ -70,10 +70,10 @@
                                         <div class="flex flex-col sm:flex-row gap-3">
                                             <div class="flex-1 relative">
                                                 <input type="text" id="edit-entity-search" placeholder="Search entities..." 
-                                                       class="w-full border border-gray-300 rounded-lg px-4 py-2 pl-10 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                                       class="w-full border border-gray-300 rounded-lg px-4 py-2 pl-10 focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent">
                                                 <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
                                             </div>
-                                            <select id="edit-entity-type-filter" class="border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                            <select id="edit-entity-type-filter" class="border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent">
                                                 <option value="ALL">All Types</option>
                                                 <option value="EMPLOYEE">Employees</option>
                                                 <option value="STUDENT">Students</option>
@@ -85,7 +85,7 @@
                                         <!-- Bulk Actions -->
                                         <div class="flex items-center justify-between bg-blue-50 p-3 rounded-lg">
                                             <div class="flex items-center space-x-4">
-                                                <button type="button" onclick="editSelectAll()" class="text-sm text-blue-600 hover:text-blue-800 font-medium">
+                                                <button type="button" onclick="editSelectAll()" class="text-sm text-[#f06e11] hover:text-blue-800 font-medium">
                                                     <i class="fas fa-check-square mr-1"></i>Select All
                                                 </button>
                                                 <button type="button" onclick="editDeselectAll()" class="text-sm text-gray-600 hover:text-gray-800 font-medium">
@@ -109,7 +109,7 @@
                                                 <div class="flex items-center justify-between mb-3 pb-2 border-b border-gray-200">
                                                     <h4 class="font-medium text-gray-900 flex items-center">
                                                         @if($type === 'EMPLOYEE')
-                                                        <i class="fas fa-user mr-2 text-blue-600"></i>
+                                                        <i class="fas fa-user mr-2 text-[#f06e11]"></i>
                                                         @elseif($type === 'STUDENT')
                                                         <i class="fas fa-graduation-cap mr-2 text-green-600"></i>
                                                         @elseif($type === 'COMPANY')
@@ -123,7 +123,7 @@
                                                         @endif
                                                         {{ $type }} <span class="ml-2 text-sm text-gray-500">({{ $typeEntities->count() }})</span>
                                                     </h4>
-                                                    <button type="button" onclick="editSelectType('{{ $type }}')" class="text-xs text-blue-600 hover:text-blue-800">
+                                                    <button type="button" onclick="editSelectType('{{ $type }}')" class="text-xs text-[#f06e11] hover:text-blue-800">
                                                         Select All
                                                     </button>
                                                 </div>
@@ -132,7 +132,7 @@
                                                     <label class="edit-entity-item flex items-center space-x-2 p-2 rounded hover:bg-white cursor-pointer" data-entity-name="{{ strtolower($entity->description) }}">
                                                         <input type="checkbox" name="entity_ids[]" value="{{ $entity->id }}" 
                                                                {{ in_array($entity->id, old('entity_ids', $selectedIds)) ? 'checked' : '' }}
-                                                               class="edit-entity-checkbox rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                                               class="edit-entity-checkbox rounded border-gray-300 text-[#f06e11] focus:ring-[#2b8bd0]"
                                                                onchange="updateEditSelectedCount()">
                                                         <span class="text-sm text-gray-700">{{ $entity->description }}</span>
                                                     </label>
@@ -155,12 +155,12 @@
                 <div class="space-y-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Select Files</label>
-                        <input type="file" name="documents[]" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <input type="file" name="documents[]" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent">
                         <p class="text-xs text-gray-500 mt-1">Supported formats: PDF, DOC, DOCX, JPG, JPEG, PNG (Max 10MB each)</p>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Document Type</label>
-                        <select name="document_type" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <select name="document_type" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent">
                             <option value="ENDORSEMENT_DOCUMENT">Endorsement Document</option>
                             <option value="POLICY_DOCUMENT">Policy Document</option>
                             <option value="FINANCIAL_DOCUMENT">Financial Document</option>
@@ -174,7 +174,7 @@
                 <a href="{{ route('endorsements.show', $endorsement) }}" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400">
                     Cancel
                 </a>
-                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                <button type="submit" class="bg-[#f06e11] text-white px-4 py-2 rounded-lg hover:bg-[#f28e1f]">
                     <i class="fas fa-save mr-2"></i>Update Endorsement
                 </button>
             </div>

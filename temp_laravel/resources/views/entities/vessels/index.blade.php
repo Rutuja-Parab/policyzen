@@ -4,7 +4,7 @@
 @section('page-title', 'Vessel Management')
 
 @section('header-actions')
-<a href="{{ route('entities.vessels.create') }}" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+<a href="{{ route('entities.vessels.create') }}" class="bg-[#f06e11] text-white px-4 py-2 rounded-lg hover:bg-[#f28e1f]">
     <i class="fas fa-plus mr-2"></i>Add Vessel
 </a>
 @endsection
@@ -30,7 +30,7 @@
 >
     <div>
         <label for="status" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
-        <select id="status" name="status" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+        <select id="status" name="status" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent">
             <option value="">All Statuses</option>
             <option value="ACTIVE" {{ request('status') == 'ACTIVE' ? 'selected' : '' }}>Active</option>
             <option value="INACTIVE" {{ request('status') == 'INACTIVE' ? 'selected' : '' }}>Inactive</option>
@@ -39,7 +39,7 @@
 
     <div>
         <label for="company_id" class="block text-sm font-medium text-gray-700 mb-1">Company</label>
-        <select id="company_id" name="company_id" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+        <select id="company_id" name="company_id" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent">
             <option value="">All Companies</option>
             @foreach($companies as $company)
             <option value="{{ $company->id }}" {{ request('company_id') == $company->id ? 'selected' : '' }}>
@@ -51,7 +51,7 @@
 
     <div>
         <label for="vessel_type" class="block text-sm font-medium text-gray-700 mb-1">Vessel Type</label>
-        <select id="vessel_type" name="vessel_type" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+        <select id="vessel_type" name="vessel_type" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent">
             <option value="">All Types</option>
             @foreach($vesselTypes as $type)
             <option value="{{ $type }}" {{ request('vessel_type') == $type ? 'selected' : '' }}>
@@ -64,13 +64,13 @@
     <div>
         <label for="flag_state" class="block text-sm font-medium text-gray-700 mb-1">Flag State</label>
         <input type="text" id="flag_state" name="flag_state" value="{{ request('flag_state') }}" 
-               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent" 
                placeholder="Enter flag state...">
     </div>
 
     <div>
         <label for="per_page" class="block text-sm font-medium text-gray-700 mb-1">Per Page</label>
-        <select id="per_page" name="per_page" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+        <select id="per_page" name="per_page" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent">
             <option value="10" {{ request('per_page') == '10' ? 'selected' : '' }}>10</option>
             <option value="20" {{ request('per_page', '20') == '20' ? 'selected' : '' }}>20</option>
             <option value="50" {{ request('per_page') == '50' ? 'selected' : '' }}>50</option>
@@ -91,7 +91,7 @@
     
     @if(request()->hasAny(['search', 'status', 'company_id', 'vessel_type', 'flag_state']))
     <div class="text-sm">
-        <a href="{{ route('entities.vessels.index') }}" class="text-blue-600 hover:text-blue-800">
+        <a href="{{ route('entities.vessels.index') }}" class="text-[#f06e11] hover:text-blue-800">
             <i class="fas fa-times mr-1"></i>Clear all filters
         </a>
     </div>
@@ -102,7 +102,7 @@
 <!-- Bulk Actions -->
 <div class="mb-4 flex items-center space-x-4">
     <div class="flex items-center">
-        <input type="checkbox" id="selectAll" class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+        <input type="checkbox" id="selectAll" class="rounded border-gray-300 text-[#f06e11] shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
         <label for="selectAll" class="ml-2 text-sm text-gray-700">Select All ({{ $vessels->total() }} total)</label>
     </div>
     
@@ -113,7 +113,7 @@
             <option value="status_active">Set Status: Active</option>
             <option value="status_inactive">Set Status: Inactive</option>
         </select>
-        <button onclick="performBulkAction()" class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700">
+        <button onclick="performBulkAction()" class="bg-[#f06e11] text-white px-3 py-1 rounded text-sm hover:bg-[#f28e1f]">
             Apply
         </button>
     </div>
@@ -126,7 +126,7 @@
             <thead class="bg-gray-50">
                 <tr>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        <input type="checkbox" id="selectAllTable" class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                        <input type="checkbox" id="selectAllTable" class="rounded border-gray-300 text-[#f06e11] shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
                     </th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         <a href="{{ request()->url() }}?{{ http_build_query(array_merge(request()->query(), ['sort_by' => 'vessel_name', 'sort_order' => request('sort_order') == 'asc' ? 'desc' : 'asc'])) }}" 
@@ -172,7 +172,7 @@
                 <tr class="hover:bg-gray-50 transition-colors duration-150">
                     <td class="px-6 py-4 whitespace-nowrap">
                         <input type="checkbox" name="selected_vessels[]" value="{{ $vessel->id }}" 
-                               class="vessel-checkbox rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                               class="vessel-checkbox rounded border-gray-300 text-[#f06e11] shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                         <div class="text-sm font-medium text-gray-900">{{ $vessel->vessel_name }}</div>
@@ -199,7 +199,7 @@
                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div class="flex items-center justify-end space-x-2">
                             <a href="{{ route('entities.vessels.show', $vessel) }}" 
-                               class="text-blue-600 hover:text-blue-900 p-1 rounded" 
+                               class="text-[#f06e11] hover:text-blue-900 p-1 rounded" 
                                title="View Details">
                                 <i class="fas fa-eye"></i>
                             </a>
@@ -257,7 +257,7 @@
             <i class="fas fa-times mr-2"></i>Clear Filters
         </a>
         @endif
-        <a href="{{ route('entities.vessels.create') }}" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+        <a href="{{ route('entities.vessels.create') }}" class="bg-[#f06e11] text-white px-4 py-2 rounded-lg hover:bg-[#f28e1f]">
             <i class="fas fa-plus mr-2"></i>Add Vessel
         </a>
     </div>

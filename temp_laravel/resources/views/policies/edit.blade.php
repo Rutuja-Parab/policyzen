@@ -49,10 +49,10 @@
                                     <div class="flex flex-col sm:flex-row gap-3">
                                         <div class="flex-1 relative">
                                             <input type="text" id="entity-search" placeholder="Search entities by name..." 
-                                                   class="w-full border border-gray-300 rounded-lg px-4 py-2 pl-10 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                                   class="w-full border border-gray-300 rounded-lg px-4 py-2 pl-10 focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent">
                                             <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
                                         </div>
-                                        <select id="entity-type-filter" class="border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                        <select id="entity-type-filter" class="border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent">
                                             <option value="ALL">All Types</option>
                                             <option value="EMPLOYEE">Employees</option>
                                             <option value="STUDENT">Students</option>
@@ -64,13 +64,13 @@
                                     <!-- Bulk Actions -->
                                     <div class="flex items-center justify-between bg-blue-50 p-3 rounded-lg">
                                         <div class="flex items-center space-x-4">
-                                            <button type="button" onclick="selectAllEntities()" class="text-sm text-blue-600 hover:text-blue-800 font-medium">
+                                            <button type="button" onclick="selectAllEntities()" class="text-sm text-[#f06e11] hover:text-blue-800 font-medium">
                                                 <i class="fas fa-check-square mr-1"></i>Select All
                                             </button>
                                             <button type="button" onclick="deselectAllEntities()" class="text-sm text-gray-600 hover:text-gray-800 font-medium">
                                                 <i class="fas fa-square mr-1"></i>Deselect All
                                             </button>
-                                            <button type="button" onclick="selectByType()" class="text-sm text-blue-600 hover:text-blue-800 font-medium">
+                                            <button type="button" onclick="selectByType()" class="text-sm text-[#f06e11] hover:text-blue-800 font-medium">
                                                 <i class="fas fa-filter mr-1"></i>Select by Type
                                             </button>
                                         </div>
@@ -92,7 +92,7 @@
                                             <div class="flex items-center justify-between mb-3 pb-2 border-b border-gray-200">
                                                 <h4 class="font-medium text-gray-900 flex items-center">
                                                     @if($type === 'EMPLOYEE')
-                                                    <i class="fas fa-user mr-2 text-blue-600"></i>
+                                                    <i class="fas fa-user mr-2 text-[#f06e11]"></i>
                                                     @elseif($type === 'STUDENT')
                                                     <i class="fas fa-graduation-cap mr-2 text-green-600"></i>
                                                     @elseif($type === 'COMPANY')
@@ -106,7 +106,7 @@
                                                     @endif
                                                     {{ $type }} <span class="ml-2 text-sm text-gray-500">({{ $typeEntities->count() }})</span>
                                                 </h4>
-                                                <button type="button" onclick="selectType('{{ $type }}')" class="text-xs text-blue-600 hover:text-blue-800">
+                                                <button type="button" onclick="selectType('{{ $type }}')" class="text-xs text-[#f06e11] hover:text-blue-800">
                                                     Select All
                                                 </button>
                                             </div>
@@ -115,7 +115,7 @@
                                                 <label class="entity-item flex items-center space-x-2 p-2 rounded hover:bg-white cursor-pointer" data-entity-name="{{ strtolower($entity->description) }}">
                                                     <input type="checkbox" name="entity_ids[]" value="{{ $entity->id }}" 
                                                            {{ in_array($entity->id, $currentEntityIds) ? 'checked' : '' }}
-                                                           class="entity-checkbox rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                                           class="entity-checkbox rounded border-gray-300 text-[#f06e11] focus:ring-[#2b8bd0]"
                                                            onchange="updateSelectedCount()">
                                                     <span class="text-sm text-gray-700">{{ $entity->description }}</span>
                                                     @if(in_array($entity->id, $currentEntityIds))
@@ -142,14 +142,14 @@
                                     <input type="text" name="policy_number" required 
                                            pattern="^[A-Z0-9\-]{5,20}$"
                                            value="{{ $policy->policy_number }}"
-                                           class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                           class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent"
                                            placeholder="POL-2025-001">
                                     <p class="text-xs text-gray-500 mt-1">5-20 characters, uppercase letters, numbers and hyphens only</p>
                                 </div>
 
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-2">Insurance Type *</label>
-                                    <select name="insurance_type" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <select name="insurance_type" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent">
                                         <option value="HEALTH" {{ $policy->insurance_type == 'HEALTH' ? 'selected' : '' }}>Health Insurance</option>
                                         <option value="ACCIDENT" {{ $policy->insurance_type == 'ACCIDENT' ? 'selected' : '' }}>Accident Insurance</option>
                                         <option value="PROPERTY" {{ $policy->insurance_type == 'PROPERTY' ? 'selected' : '' }}>Property Insurance</option>
@@ -160,12 +160,12 @@
 
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-2">Provider *</label>
-                                    <input type="text" name="provider" value="{{ $policy->provider }}" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <input type="text" name="provider" value="{{ $policy->provider }}" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent">
                                 </div>
 
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-2">Status *</label>
-                                    <select name="status" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <select name="status" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent">
                                         <option value="ACTIVE" {{ $policy->status == 'ACTIVE' ? 'selected' : '' }}>Active</option>
                                         <option value="EXPIRED" {{ $policy->status == 'EXPIRED' ? 'selected' : '' }}>Expired</option>
                                         <option value="UNDER_REVIEW" {{ $policy->status == 'UNDER_REVIEW' ? 'selected' : '' }}>Under Review</option>
@@ -175,12 +175,12 @@
 
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-2">Start Date *</label>
-                                    <input type="date" name="start_date" value="{{ $policy->start_date ? $policy->start_date->format('Y-m-d') : '' }}" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <input type="date" name="start_date" value="{{ $policy->start_date ? $policy->start_date->format('Y-m-d') : '' }}" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent">
                                 </div>
 
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-2">End Date *</label>
-                                    <input type="date" name="end_date" value="{{ $policy->end_date ? $policy->end_date->format('Y-m-d') : '' }}" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <input type="date" name="end_date" value="{{ $policy->end_date ? $policy->end_date->format('Y-m-d') : '' }}" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent">
                                 </div>
 
                                 <div>
@@ -190,7 +190,7 @@
                                         <input type="text" name="sum_insured" required 
                                                pattern="^[0-9]+(?:\.[0-9]{1,2})?$"
                                                value="{{ number_format($policy->sum_insured, 2, '.', '') }}"
-                                               class="w-full border border-gray-300 rounded-lg px-8 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                               class="w-full border border-gray-300 rounded-lg px-8 py-2 focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent"
                                                placeholder="100000.00"
                                                maxlength="15"
                                                oninput="formatCurrency(this)">
@@ -205,7 +205,7 @@
                                         <input type="text" name="premium_amount" required 
                                                pattern="^[0-9]+(?:\.[0-9]{1,2})?$"
                                                value="{{ number_format($policy->premium_amount, 2, '.', '') }}"
-                                               class="w-full border border-gray-300 rounded-lg px-8 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                               class="w-full border border-gray-300 rounded-lg px-8 py-2 focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent"
                                                placeholder="5000.00"
                                                maxlength="10"
                                                oninput="formatCurrency(this)">
@@ -220,12 +220,12 @@
                                 <div class="space-y-4">
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 mb-2">Select Files</label>
-                                        <input type="file" name="documents[]" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                        <input type="file" name="documents[]" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent">
                                         <p class="text-xs text-gray-500 mt-1">Supported formats: PDF, DOC, DOCX, JPG, JPEG, PNG (Max 10MB each)</p>
                                     </div>
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 mb-2">Document Type</label>
-                                        <select name="document_type" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                        <select name="document_type" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent">
                                             <option value="POLICY_DOCUMENT">Policy Document</option>
                                             <option value="ENDORSEMENT_DOCUMENT">Endorsement Document</option>
                                             <option value="FINANCIAL_DOCUMENT">Financial Document</option>
@@ -239,7 +239,7 @@
                                 <a href="{{ route('policies.index') }}" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400">
                                     Cancel
                                 </a>
-                                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                                <button type="submit" class="bg-[#f06e11] text-white px-4 py-2 rounded-lg hover:bg-[#f28e1f]">
                                     <i class="fas fa-save mr-2"></i>Update Policy
                                 </button>
                             </div>

@@ -52,7 +52,7 @@
             </div>
             <div>
                 <p class="text-sm text-gray-500">Students Covered</p>
-                <p class="text-2xl font-bold text-blue-600">{{ $attachedStudents->count() }}</p>
+                <p class="text-2xl font-bold text-[#f06e11]">{{ $attachedStudents->count() }}</p>
             </div>
             <div>
                 <p class="text-sm text-gray-500">Policy Status</p>
@@ -79,7 +79,7 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Premium per Student (₹)</label>
                         <input type="number" name="premium_per_student" step="0.01" min="0" required
-                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2b8bd0] focus:border-blue-500"
                             placeholder="Enter premium amount">
                     </div>
                     
@@ -89,7 +89,7 @@
                             @forelse($availableStudents as $student)
                             <label class="flex items-center px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0">
                                 <input type="checkbox" name="student_ids[]" value="{{ $student->id }}" 
-                                    class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                                    class="w-4 h-4 text-[#f06e11] border-gray-300 rounded focus:ring-[#2b8bd0]">
                                 <div class="ml-3">
                                     <p class="text-sm font-medium text-gray-900">{{ $student->name }}</p>
                                     <p class="text-xs text-gray-500">{{ $student->student_id }} | {{ $student->course }}</p>
@@ -102,7 +102,7 @@
                     </div>
 
                     <div class="flex items-center justify-between pt-4">
-                        <button type="button" onclick="selectAllAvailable()" class="text-sm text-blue-600 hover:text-blue-800">
+                        <button type="button" onclick="selectAllAvailable()" class="text-sm text-[#f06e11] hover:text-blue-800">
                             Select All
                         </button>
                         <button type="submit" class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50">
@@ -128,7 +128,7 @@
                         <label class="block text-sm font-medium text-gray-700 mb-2">Refund per Student (₹) *</label>
                         <input type="text" name="refund_per_student" step="0.01" min="0" required
                                pattern="^[0-9]+(?:\.[0-9]{1,2})?$"
-                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2b8bd0] focus:border-blue-500"
                                placeholder="Enter refund amount">
                         <p class="text-xs text-gray-500 mt-1">Enter amount in Indian Rupees (e.g., 2500.00)</p>
                     </div>
@@ -136,7 +136,7 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Removal Reason *</label>
                         <select name="removal_reason" required 
-                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2b8bd0] focus:border-blue-500">
                             <option value="">Select removal reason</option>
                             <option value="Course Completion">Course Completion</option>
                             <option value="Transfer to Another Institute">Transfer to Another Institute</option>
@@ -151,7 +151,7 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Document Type</label>
                         <select name="document_type" 
-                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2b8bd0] focus:border-blue-500">
                             <option value="REMOVAL_CERTIFICATE">Removal Certificate</option>
                             <option value="MEDICAL_CERTIFICATE">Medical Certificate</option>
                             <option value="TRANSFER_LETTER">Transfer Letter</option>
@@ -164,7 +164,7 @@
                         <label class="block text-sm font-medium text-gray-700 mb-2">Supporting Documents</label>
                         <input type="file" name="endorsement_documents[]" multiple 
                                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" 
-                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2b8bd0] focus:border-blue-500">
                         <p class="text-xs text-gray-500 mt-1">Upload supporting documents (PDF, DOC, DOCX, JPG, PNG - Max 10MB each)</p>
                     </div>
                     
@@ -205,11 +205,11 @@
         <div class="p-6 border-b border-gray-200 flex justify-between items-center">
             <div>
                 <h2 class="text-lg font-semibold text-gray-900">
-                    <i class="fas fa-history text-blue-600 mr-2"></i>Recent Activity
+                    <i class="fas fa-history text-[#f06e11] mr-2"></i>Recent Activity
                 </h2>
                 <p class="text-sm text-gray-500 mt-1">Transaction history for student additions and removals</p>
             </div>
-            <a href="{{ route('policies.students.audit-logs', $policy) }}" class="text-blue-600 hover:text-blue-800 text-sm">
+            <a href="{{ route('policies.students.audit-logs', $policy) }}" class="text-[#f06e11] hover:text-blue-800 text-sm">
                 View All <i class="fas fa-arrow-right ml-1"></i>
             </a>
         </div>
@@ -248,7 +248,7 @@
                         <td class="px-6 py-4 text-sm text-gray-500">
                             @if($log->endorsement)
                             <a href="{{ route('policies.students.endorsement.download', [$policy, $log->endorsement_id]) }}" 
-                               class="text-blue-600 hover:text-blue-800">
+                               class="text-[#f06e11] hover:text-blue-800">
                                 <i class="fas fa-file-pdf mr-1"></i>{{ $log->metadata['endorsement_number'] ?? 'Download' }}
                             </a>
                             @else

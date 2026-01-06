@@ -4,8 +4,8 @@
     <!-- Notification Bell Button -->
     <button 
         @click="toggleDropdown()" 
-        class="relative p-2 text-gray-600 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-lg transition-colors"
-        :class="{ 'text-blue-600 bg-blue-50': dropdownOpen }"
+        class="relative p-2 text-gray-600 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#2b8bd0] focus:ring-offset-2 rounded-lg transition-colors"
+        :class="{ 'text-[#f06e11] bg-blue-50': dropdownOpen }"
     >
         <i class="fas fa-bell text-xl"></i>
         
@@ -39,7 +39,7 @@
                     <button 
                         @click="markAllAsRead()" 
                         x-show="unreadCount > 0"
-                        class="text-xs text-blue-600 hover:text-blue-800 font-medium"
+                        class="text-xs text-[#f06e11] hover:text-blue-800 font-medium"
                     >
                         Mark all read
                     </button>
@@ -118,7 +118,7 @@
                 <span class="text-gray-600">
                     <span x-text="unreadCount"></span> unread
                 </span>
-                <a href="{{ route('notifications.index') }}" class="text-blue-600 hover:text-blue-800 font-medium">
+                <a href="{{ route('notifications.index') }}" class="text-[#f06e11] hover:text-blue-800 font-medium">
                     View all notifications
                 </a>
             </div>

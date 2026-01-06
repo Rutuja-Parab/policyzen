@@ -129,7 +129,7 @@ function confirmAction(message, callback) {
                 <button onclick="this.closest('.fixed').remove()" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
                     Cancel
                 </button>
-                <button onclick="this.closest('.fixed').remove(); ${callback};" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700">
+                <button onclick="this.closest('.fixed').remove(); ${callback};" class="px-4 py-2 text-sm font-medium text-white bg-[#f06e11] border border-transparent rounded-md hover:bg-[#f28e1f]">
                     Confirm
                 </button>
             </div>
@@ -150,7 +150,7 @@ function showProgress(operation, total) {
                 <h3 class="text-lg font-medium text-gray-900">${operation}</h3>
             </div>
             <div class="w-full bg-gray-200 rounded-full h-2">
-                <div class="bg-blue-600 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                <div class="bg-[#f06e11] h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
             </div>
             <p class="text-sm text-gray-600 mt-2" id="progress-text">Processing 0 of ${total} items...</p>
         </div>
@@ -161,7 +161,7 @@ function showProgress(operation, total) {
 }
 
 function updateProgress(modal, current, total) {
-    const progressBar = modal.querySelector('.bg-blue-600');
+    const progressBar = modal.querySelector('.bg-[#f06e11]');
     const progressText = modal.querySelector('#progress-text');
     const percentage = (current / total) * 100;
     

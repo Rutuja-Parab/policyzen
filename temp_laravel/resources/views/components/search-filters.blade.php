@@ -11,7 +11,7 @@
                                name="search" 
                                value="{{ request('search') }}" 
                                placeholder="{{ $searchPlaceholder ?? 'Search by name, number, description...' }}"
-                               class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                               class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent">
                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                             <i class="fas fa-search text-gray-400"></i>
                         </div>
@@ -25,7 +25,7 @@
                            id="date_from" 
                            name="date_from" 
                            value="{{ request('date_from') }}" 
-                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent">
                 </div>
                 
                 <div>
@@ -34,12 +34,12 @@
                            id="date_to" 
                            name="date_to" 
                            value="{{ request('date_to') }}" 
-                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent">
                 </div>
                 @endisset
 
                 <div class="flex items-end">
-                    <button type="submit" class="w-full bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-200">
+                    <button type="submit" class="w-full bg-[#f06e11] text-white px-4 py-2 rounded-lg hover:bg-[#f28e1f] transition-colors duration-200">
                         <i class="fas fa-search mr-2"></i>Search
                     </button>
                 </div>

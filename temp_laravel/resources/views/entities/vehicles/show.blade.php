@@ -11,7 +11,7 @@
 @endsection
 
 @section('header-actions')
-<a href="{{ route('entities.vehicles.edit', $vehicle) }}" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+<a href="{{ route('entities.vehicles.edit', $vehicle) }}" class="bg-[#f06e11] text-white px-4 py-2 rounded-lg hover:bg-[#f28e1f]">
     <i class="fas fa-edit mr-2"></i>Edit Vehicle
 </a>
 @endsection
@@ -66,7 +66,7 @@
             </div>
 
             <div class="p-6 space-y-4">
-                <a href="{{ route('entities.vehicles.edit', $vehicle) }}" class="w-full bg-blue-600 text-white px-4 py-3 rounded-lg hover:bg-blue-700 flex items-center justify-center">
+                <a href="{{ route('entities.vehicles.edit', $vehicle) }}" class="w-full bg-[#f06e11] text-white px-4 py-3 rounded-lg hover:bg-[#f28e1f] flex items-center justify-center">
                     <i class="fas fa-edit mr-2"></i>Edit Vehicle
                 </a>
 

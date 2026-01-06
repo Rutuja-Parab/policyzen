@@ -35,17 +35,17 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Student ID *</label>
-                    <input type="text" name="student_id" value="{{ old('student_id', $student->student_id) }}" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <input type="text" name="student_id" value="{{ old('student_id', $student->student_id) }}" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent">
                 </div>
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Name *</label>
-                    <input type="text" name="name" value="{{ old('name', $student->name) }}" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <input type="text" name="name" value="{{ old('name', $student->name) }}" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent">
                 </div>
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Course</label>
-                    <select name="course_id" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <select name="course_id" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent">
                         <option value="">Select Course (optional)</option>
                         @foreach($courses as $course)
                         <option value="{{ $course->id }}" {{ old('course_id', $selectedCourseId ?? null) == $course->id ? 'selected' : '' }}>
@@ -57,7 +57,7 @@
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Company *</label>
-                    <select name="company_id" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <select name="company_id" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent">
                         <option value="">Select Company</option>
                         @foreach($companies as $company)
                         <option value="{{ $company->id }}" {{ old('company_id', $student->company_id) == $company->id ? 'selected' : '' }}>
@@ -72,7 +72,7 @@
                     <input type="email" name="email" required 
                            pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
                            value="{{ old('email', $student->email) }}" 
-                           class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                           class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent" 
                            placeholder="student@example.com">
                     <p class="text-xs text-gray-500 mt-1">Enter a valid email address (e.g., student@company.com)</p>
                 </div>
@@ -82,7 +82,7 @@
                     <input type="tel" name="phone" required 
                            pattern="^\+91[0-9]{10}$"
                            value="{{ old('phone', $student->phone) }}" 
-                           class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                           class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent" 
                            placeholder="+919876543210"
                            maxlength="13">
                     <p class="text-xs text-gray-500 mt-1">Enter 10-digit mobile number with +91 prefix (e.g., +919876543210)</p>
@@ -90,17 +90,17 @@
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Date of Birth</label>
-                    <input type="date" name="dob" value="{{ old('dob', $student->dob ? $student->dob->format('Y-m-d') : '') }}" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <input type="date" name="dob" value="{{ old('dob', $student->dob ? $student->dob->format('Y-m-d') : '') }}" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent">
                 </div>
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Age</label>
-                    <input type="number" name="age" value="{{ old('age', $student->age) }}" min="1" max="100" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="25">
+                    <input type="number" name="age" value="{{ old('age', $student->age) }}" min="1" max="100" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent" placeholder="25">
                 </div>
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Gender</label>
-                    <select name="gender" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <select name="gender" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent">
                         <option value="">Select Gender</option>
                         <option value="Male" {{ old('gender', $student->gender) === 'Male' ? 'selected' : '' }}>Male</option>
                         <option value="Female" {{ old('gender', $student->gender) === 'Female' ? 'selected' : '' }}>Female</option>
@@ -110,12 +110,12 @@
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Rank</label>
-                    <input type="text" name="rank" value="{{ old('rank', $student->rank) }}" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="1">
+                    <input type="text" name="rank" value="{{ old('rank', $student->rank) }}" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent" placeholder="1">
                 </div>
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
-                    <select name="status" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <select name="status" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent">
                         <option value="ACTIVE" {{ old('status', $student->status) === 'ACTIVE' ? 'selected' : '' }}>Active</option>
                         <option value="INACTIVE" {{ old('status', $student->status) === 'INACTIVE' ? 'selected' : '' }}>Inactive</option>
                     </select>
@@ -126,7 +126,7 @@
                 <a href="{{ route('entities.students.show', $student) }}" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400">
                     Cancel
                 </a>
-                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                <button type="submit" class="bg-[#f06e11] text-white px-4 py-2 rounded-lg hover:bg-[#f28e1f]">
                     <i class="fas fa-save mr-2"></i>Update Student
                 </button>
             </div>

@@ -4,7 +4,7 @@
 @section('page-title', 'Course Management')
 
 @section('header-actions')
-<a href="{{ route('entities.courses.create') }}" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+<a href="{{ route('entities.courses.create') }}" class="bg-[#f06e11] text-white px-4 py-2 rounded-lg hover:bg-[#f28e1f]">
     <i class="fas fa-plus mr-2"></i>Add Course
 </a>
 @endsection
@@ -23,7 +23,7 @@
                 <h2 class="text-lg font-medium text-gray-900">Courses</h2>
                 <p class="text-sm text-gray-500">Manage educational courses and programs</p>
             </div>
-            <a href="{{ route('entities.courses.create') }}" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+            <a href="{{ route('entities.courses.create') }}" class="bg-[#f06e11] text-white px-4 py-2 rounded-lg hover:bg-[#f28e1f]">
                 <i class="fas fa-plus mr-2"></i>Add Course
             </a>
         </div>
@@ -55,7 +55,7 @@
                 </div>
 
                 <div class="flex space-x-2 mt-4">
-                    <a href="{{ route('entities.courses.show', $course) }}" class="text-blue-600 hover:text-blue-800 text-sm">
+                    <a href="{{ route('entities.courses.show', $course) }}" class="text-[#f06e11] hover:text-blue-800 text-sm">
                         <i class="fas fa-eye mr-1"></i>View
                     </a>
                     <a href="{{ route('entities.courses.edit', $course) }}" class="text-green-600 hover:text-green-800 text-sm">
@@ -77,7 +77,7 @@
             <i class="fas fa-book text-gray-300 text-4xl mb-4"></i>
             <h3 class="text-lg font-medium text-gray-900 mb-2">No courses found</h3>
             <p class="text-gray-500 mb-4">Create your first course to get started.</p>
-            <a href="{{ route('entities.courses.create') }}" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+            <a href="{{ route('entities.courses.create') }}" class="bg-[#f06e11] text-white px-4 py-2 rounded-lg hover:bg-[#f28e1f]">
                 <i class="fas fa-plus mr-2"></i>Add Course
             </a>
         </div>

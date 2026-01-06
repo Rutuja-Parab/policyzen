@@ -7,7 +7,7 @@
 <a href="{{ route('entities.courses.index') }}" class="text-gray-400 hover:text-gray-600 mr-4">
     <i class="fas fa-arrow-left"></i>
 </a>
-<a href="{{ route('entities.courses.edit', $course) }}" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+<a href="{{ route('entities.courses.edit', $course) }}" class="bg-[#f06e11] text-white px-4 py-2 rounded-lg hover:bg-[#f28e1f]">
     <i class="fas fa-edit mr-2"></i>Edit Course
 </a>
 @endsection
@@ -59,7 +59,7 @@
                         <label class="block text-sm font-medium text-gray-700 mb-2">Company</label>
                         <p class="text-gray-900">
                             @if($course->company)
-                            <a href="{{ route('companies.show', $course->company) }}" class="text-blue-600 hover:underline">
+                            <a href="{{ route('companies.show', $course->company) }}" class="text-[#f06e11] hover:underline">
                                 {{ $course->company->name }}
                             </a>
                             @else
@@ -80,7 +80,7 @@
             </div>
 
             <div class="p-6 space-y-4">
-                <a href="{{ route('entities.courses.edit', $course) }}" class="w-full bg-blue-600 text-white px-4 py-3 rounded-lg hover:bg-blue-700 flex items-center justify-center">
+                <a href="{{ route('entities.courses.edit', $course) }}" class="w-full bg-[#f06e11] text-white px-4 py-3 rounded-lg hover:bg-[#f28e1f] flex items-center justify-center">
                     <i class="fas fa-edit mr-2"></i>Edit Course
                 </a>
 

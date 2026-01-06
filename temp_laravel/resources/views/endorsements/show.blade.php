@@ -12,7 +12,7 @@
 @endsection
 
 @section('header-actions')
-<a href="{{ route('endorsements.edit', $endorsement) }}" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+<a href="{{ route('endorsements.edit', $endorsement) }}" class="bg-[#f06e11] text-white px-4 py-2 rounded-lg hover:bg-[#f28e1f]">
     <i class="fas fa-edit mr-2"></i>Edit Endorsement
 </a>
 @endsection
@@ -27,7 +27,7 @@
                 <p class="text-sm text-gray-500 mt-1">{{ $endorsement->entities->count() }} entity(ies) currently associated</p>
             </div>
             <button onclick="document.getElementById('manage-entities-modal').classList.remove('hidden')"
-                    class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                    class="bg-[#f06e11] text-white px-4 py-2 rounded-lg hover:bg-[#f28e1f]">
                 <i class="fas fa-edit mr-2"></i>Manage Entities
             </button>
         </div>
@@ -41,7 +41,7 @@
                 <div class="flex items-start justify-between">
                     <div class="flex items-center space-x-3 flex-1">
                         <div class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0
-                            @if($entity->type === 'EMPLOYEE') bg-blue-100 text-blue-600
+                            @if($entity->type === 'EMPLOYEE') bg-blue-100 text-[#f06e11]
                             @elseif($entity->type === 'STUDENT') bg-green-100 text-green-600
                             @elseif($entity->type === 'COMPANY') bg-purple-100 text-purple-600
                             @elseif($entity->type === 'COURSE') bg-orange-100 text-orange-600
@@ -113,7 +113,7 @@
             @foreach($endorsement->documents as $document)
             <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                 <div class="flex items-center space-x-4">
-                    <div class="w-10 h-10 rounded-full flex items-center justify-center bg-blue-100 text-blue-600">
+                    <div class="w-10 h-10 rounded-full flex items-center justify-center bg-blue-100 text-[#f06e11]">
                         <i class="fas fa-file"></i>
                     </div>
                     <div>
@@ -123,7 +123,7 @@
                     </div>
                 </div>
                 <div class="flex items-center space-x-2">
-                    <a href="{{ Storage::url($document->file_path) }}" target="_blank" class="text-blue-600 hover:text-blue-800">
+                    <a href="{{ Storage::url($document->file_path) }}" target="_blank" class="text-[#f06e11] hover:text-blue-800">
                         <i class="fas fa-download"></i>
                     </a>
                     <form method="POST" action="{{ route('documents.destroy', $document) }}" class="inline" onsubmit="return confirm('Are you sure you want to delete this document?')">
@@ -171,7 +171,7 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Policy</label>
                         <p class="text-gray-900">
-                            <a href="{{ route('policies.show', $endorsement->policy) }}" class="text-blue-600 hover:underline">
+                            <a href="{{ route('policies.show', $endorsement->policy) }}" class="text-[#f06e11] hover:underline">
                                 {{ $endorsement->policy->policy_number }}
                             </a>
                         </p>
@@ -206,7 +206,7 @@
             </div>
 
             <div class="p-6 space-y-4">
-                <a href="{{ route('endorsements.edit', $endorsement) }}" class="w-full bg-blue-600 text-white px-4 py-3 rounded-lg hover:bg-blue-700 flex items-center justify-center">
+                <a href="{{ route('endorsements.edit', $endorsement) }}" class="w-full bg-[#f06e11] text-white px-4 py-3 rounded-lg hover:bg-[#f28e1f] flex items-center justify-center">
                     <i class="fas fa-edit mr-2"></i>Edit Endorsement
                 </a>
 
@@ -277,7 +277,7 @@
                                                class="remove-checkbox rounded border-gray-300 text-red-600 focus:ring-red-500"
                                                onchange="updateRemoveCount()">
                                         <div class="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0
-                                            @if($entity->type === 'EMPLOYEE') bg-blue-100 text-blue-600
+                                            @if($entity->type === 'EMPLOYEE') bg-blue-100 text-[#f06e11]
                                             @elseif($entity->type === 'STUDENT') bg-green-100 text-green-600
                                             @elseif($entity->type === 'COMPANY') bg-purple-100 text-purple-600
                                             @elseif($entity->type === 'COURSE') bg-orange-100 text-orange-600
@@ -374,7 +374,7 @@
                                         <div class="flex items-center justify-between mb-2">
                                             <h5 class="text-xs font-medium text-gray-700 flex items-center">
                                                 @if($type === 'EMPLOYEE')
-                                                <i class="fas fa-user mr-1 text-blue-600 text-xs"></i>
+                                                <i class="fas fa-user mr-1 text-[#f06e11] text-xs"></i>
                                                 @elseif($type === 'STUDENT')
                                                 <i class="fas fa-graduation-cap mr-1 text-green-600 text-xs"></i>
                                                 @elseif($type === 'COMPANY')
@@ -456,12 +456,12 @@
                 <div class="space-y-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Select File</label>
-                        <input type="file" name="documents[]" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <input type="file" name="documents[]" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent">
                         <p class="text-xs text-gray-500 mt-1">Supported formats: PDF, DOC, DOCX, JPG, JPEG, PNG (Max 10MB each)</p>
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Document Type</label>
-                        <select name="document_type" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <select name="document_type" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent">
                             <option value="ENDORSEMENT_DOCUMENT">Endorsement Document</option>
                             <option value="POLICY_DOCUMENT">Policy Document</option>
                             <option value="FINANCIAL_DOCUMENT">Financial Document</option>

@@ -9,90 +9,85 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 
-<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen flex items-center justify-center">
-    <div class="max-w-md w-full space-y-8">
-        <div class="bg-white rounded-lg shadow-xl p-8">
-            <!-- Logo and Title -->
-            <div class="text-center">
-                <div
-                    class="w-16 h-16 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center mx-auto mb-4">
-                    <i class="fas fa-shield-alt text-white text-2xl"></i>
-                </div>
-                <h2 class="text-3xl font-bold text-gray-900 mb-2">PolicyZen</h2>
-                <p class="text-gray-600">Insurance Policy Management System</p>
+<body class="bg-gradient-to-br from-[#2b8bd0] to-[#04315b] min-h-screen flex items-center justify-center p-4">
+    <div class="max-w-6xl w-full bg-white rounded-lg shadow-2xl overflow-hidden">
+        <div class="flex flex-col md:flex-row">
+            <!-- Left Side -->
+            <div
+                class="md:w-1/2 bg-gradient-to-br from-[#04315b] to-[#2b8bd0] p-12 text-white flex flex-col justify-center">
+                <h1 class="text-4xl font-bold mb-4">Welcome to PolicyZen</h1>
+                <p class="text-lg mb-6">Secure Insurance Document Management System</p>
+                <ul class="space-y-4">
+                    <li class="flex items-center">
+                        <i class="fas fa-shield-alt text-[#f06e11] mr-3"></i>
+                        Secure Document Storage
+                    </li>
+                    <li class="flex items-center">
+                        <i class="fas fa-file-alt text-[#f06e11] mr-3"></i>
+                        Policy Management
+                    </li>
+                    <li class="flex items-center">
+                        <i class="fas fa-clipboard-check text-[#f06e11] mr-3"></i>
+                        Claim Processing
+                    </li>
+                </ul>
             </div>
-
-            <!-- Login Form -->
-            <form method="POST" action="{{ route('login.post') }}" class="mt-8 space-y-6">
-                @csrf
-
-                <!-- Email Field -->
-                <div>
-                    <label for="email" class="block text-sm font-medium text-gray-700 mb-2">
-                        Email Address
-                    </label>
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <i class="fas fa-envelope text-gray-400"></i>
+            <!-- Right Side -->
+            <div class="md:w-1/2 p-12">
+                <div class="text-center mb-8">
+                    <img src="{{ asset('logo.png') }}" alt="PolicyZen Logo" class="h-40 w-auto mx-auto mb-2">
+                    <h2 class="text-2xl font-bold text-gray-900">Sign In</h2>
+                    <p class="text-gray-600">Access your insurance documents</p>
+                </div>
+                <form method="POST" action="{{ route('login.post') }}" class="space-y-6">
+                    @csrf
+                    <!-- Email -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+                        <div class="relative">
+                            <i class="fas fa-envelope absolute left-3 top-3 text-gray-400"></i>
+                            <input type="email" name="email" value="{{ old('email') }}" required
+                                class="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent"
+                                placeholder="Enter your email">
                         </div>
-                        <input id="email" name="email" type="email" value="{{ old('email') }}" required
-                            class="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent @error('email') border-red-500 @enderror"
-                            placeholder="Enter your email">
+                        @error('email')
+                            <p class="text-red-600 text-sm mt-1">{{ $message }}</p>
+                        @enderror
                     </div>
-                    @error('email')
-                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <!-- Password Field -->
-                <div>
-                    <label for="password" class="block text-sm font-medium text-gray-700 mb-2">
-                        Password
-                    </label>
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <i class="fas fa-lock text-gray-400"></i>
+                    <!-- Password -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                        <div class="relative">
+                            <i class="fas fa-lock absolute left-3 top-3 text-gray-400"></i>
+                            <input type="password" name="password" required
+                                class="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent"
+                                placeholder="Enter your password">
                         </div>
-                        <input id="password" name="password" type="password" required
-                            class="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            placeholder="Enter your password">
                     </div>
-                </div>
-
-                <!-- Remember Me -->
-                <div class="flex items-center">
-                    <input id="remember" name="remember" type="checkbox"
-                        class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
-                    <label for="remember" class="ml-2 block text-sm text-gray-700">
-                        Remember me
-                    </label>
-                </div>
-
-                <!-- Submit Button -->
-                <div>
+                    <!-- Remember and Forgot -->
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <input type="checkbox" name="remember"
+                                class="h-4 w-4 text-[#2b8bd0] focus:ring-[#2b8bd0] border-gray-300 rounded">
+                            <label class="ml-2 text-sm text-gray-700">Remember me</label>
+                        </div>
+                        <a href="#" class="text-sm text-[#2b8bd0] hover:text-[#04315b]">Forgot password?</a>
+                    </div>
+                    <!-- Button -->
                     <button type="submit"
-                        class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200">
-                        <i class="fas fa-sign-in-alt mr-2"></i>
-                        Sign In
+                        class="w-full bg-gradient-to-r from-[#f06e11] to-[#f28e1f] text-white py-3 rounded-lg font-medium hover:from-[#f28e1f] hover:to-[#f06e11] transition-all duration-200 flex items-center justify-center">
+                        <i class="fas fa-sign-in-alt mr-2"></i> Sign In
                     </button>
+                </form>
+                <!-- Demo -->
+                <div class="mt-8 bg-gray-50 p-6 rounded-lg border border-gray-200">
+                    <h3 class="text-lg font-medium text-gray-900 mb-4 flex items-center">
+                        <i class="fas fa-info-circle text-[#2b8bd0] mr-2"></i> Demo Credentials
+                    </h3>
+                    <p class="text-sm"><strong>Email:</strong> admin@policyzen.com</p>
+                    <p class="text-sm"><strong>Password:</strong> admin123</p>
+                    <p class="text-sm text-gray-600 mt-2">Use these to explore the system</p>
                 </div>
-            </form>
-
-            <!-- Footer -->
-            <div class="mt-8 text-center">
-                <p class="text-sm text-gray-600">
-                    Welcome to PolicyZen - Your comprehensive insurance management solution
-                </p>
-            </div>
-        </div>
-
-        <!-- Demo Credentials -->
-        <div class="bg-white rounded-lg shadow p-6">
-            <h3 class="text-lg font-medium text-gray-900 mb-4">Demo Credentials</h3>
-            <div class="space-y-2 text-sm">
-                <p><strong>Email:</strong> admin@policyzen.com</p>
-                <p><strong>Password:</strong> admin123</p>
-                <p class="text-gray-600 mt-2">Use these credentials to explore the system</p>
             </div>
         </div>
     </div>

@@ -12,7 +12,7 @@
 @endsection
 
 @section('header-actions')
-<a href="{{ route('endorsements.create') }}" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+<a href="{{ route('endorsements.create') }}" class="bg-[#f06e11] text-white px-4 py-2 rounded-lg hover:bg-[#f28e1f]">
     <i class="fas fa-plus mr-2"></i>Create Endorsement
 </a>
 @endsection
@@ -38,7 +38,7 @@
 >
     <div>
         <label for="policy_id" class="block text-sm font-medium text-gray-700 mb-1">Policy</label>
-        <select id="policy_id" name="policy_id" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+        <select id="policy_id" name="policy_id" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent">
             <option value="">All Policies</option>
             @foreach($policies as $policy)
             <option value="{{ $policy->id }}" {{ request('policy_id') == $policy->id ? 'selected' : '' }}>
@@ -51,13 +51,13 @@
     <div>
         <label for="description_keyword" class="block text-sm font-medium text-gray-700 mb-1">Description Contains</label>
         <input type="text" id="description_keyword" name="description_keyword" value="{{ request('description_keyword') }}" 
-               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent" 
                placeholder="Enter keyword...">
     </div>
 
     <div>
         <label for="per_page" class="block text-sm font-medium text-gray-700 mb-1">Per Page</label>
-        <select id="per_page" name="per_page" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+        <select id="per_page" name="per_page" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent">
             <option value="10" {{ request('per_page') == '10' ? 'selected' : '' }}>10</option>
             <option value="20" {{ request('per_page', '20') == '20' ? 'selected' : '' }}>20</option>
             <option value="50" {{ request('per_page') == '50' ? 'selected' : '' }}>50</option>
@@ -78,7 +78,7 @@
     
     @if(request()->hasAny(['search', 'policy_id', 'date_from', 'date_to', 'description_keyword']))
     <div class="text-sm">
-        <a href="{{ route('endorsements.index') }}" class="text-blue-600 hover:text-blue-800">
+        <a href="{{ route('endorsements.index') }}" class="text-[#f06e11] hover:text-blue-800">
             <i class="fas fa-times mr-1"></i>Clear all filters
         </a>
     </div>
@@ -89,7 +89,7 @@
 <!-- Bulk Actions -->
 <div class="mb-4 flex items-center space-x-4">
     <div class="flex items-center">
-        <input type="checkbox" id="selectAll" class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+        <input type="checkbox" id="selectAll" class="rounded border-gray-300 text-[#f06e11] shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
         <label for="selectAll" class="ml-2 text-sm text-gray-700">Select All ({{ $endorsements->total() }} total)</label>
     </div>
     
@@ -99,7 +99,7 @@
             <option value="export">Export Selected</option>
             <option value="delete">Delete Selected</option>
         </select>
-        <button onclick="performBulkAction()" class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700">
+        <button onclick="performBulkAction()" class="bg-[#f06e11] text-white px-3 py-1 rounded text-sm hover:bg-[#f28e1f]">
             Apply
         </button>
     </div>
@@ -112,7 +112,7 @@
             <thead class="bg-gray-50">
                 <tr>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        <input type="checkbox" id="selectAllTable" class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                        <input type="checkbox" id="selectAllTable" class="rounded border-gray-300 text-[#f06e11] shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
                     </th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         <a href="{{ request()->url() }}?{{ http_build_query(array_merge(request()->query(), ['sort_by' => 'endorsement_number', 'sort_order' => request('sort_order') == 'asc' ? 'desc' : 'asc'])) }}" 
@@ -159,7 +159,7 @@
                 <tr class="hover:bg-gray-50 transition-colors duration-150">
                     <td class="px-6 py-4 whitespace-nowrap">
                         <input type="checkbox" name="selected_endorsements[]" value="{{ $endorsement->id }}" 
-                               class="endorsement-checkbox rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                               class="endorsement-checkbox rounded border-gray-300 text-[#f06e11] shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                         <div class="text-sm font-medium text-gray-900">{{ $endorsement->endorsement_number }}</div>
@@ -181,7 +181,7 @@
                         </div>
                         @if(strlen($endorsement->description) > 80)
                         <button onclick="showFullDescription('{{ $endorsement->id }}')" 
-                                class="text-xs text-blue-600 hover:text-blue-800 mt-1">
+                                class="text-xs text-[#f06e11] hover:text-blue-800 mt-1">
                             Read more
                         </button>
                         <div id="full-description-{{ $endorsement->id }}" class="hidden text-sm text-gray-700 mt-2 p-3 bg-gray-50 rounded border">
@@ -203,7 +203,7 @@
                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div class="flex items-center justify-end space-x-2">
                             <a href="{{ route('endorsements.show', $endorsement) }}" 
-                               class="text-blue-600 hover:text-blue-900 p-1 rounded" 
+                               class="text-[#f06e11] hover:text-blue-900 p-1 rounded" 
                                title="View Details">
                                 <i class="fas fa-eye"></i>
                             </a>
@@ -261,7 +261,7 @@
             <i class="fas fa-times mr-2"></i>Clear Filters
         </a>
         @endif
-        <a href="{{ route('endorsements.create') }}" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+        <a href="{{ route('endorsements.create') }}" class="bg-[#f06e11] text-white px-4 py-2 rounded-lg hover:bg-[#f28e1f]">
             <i class="fas fa-plus mr-2"></i>Create Endorsement
         </a>
     </div>

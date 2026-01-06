@@ -107,7 +107,7 @@
                                 <p class="text-sm font-medium text-gray-900">Policy #{{ $auditLog->policy->id }}</p>
                                 <p class="text-sm text-gray-500">{{ $auditLog->policy->policy_number }}</p>
                             </div>
-                            <a href="{{ route('policies.show', $auditLog->policy) }}" class="text-blue-600 hover:text-blue-900 text-sm">
+                            <a href="{{ route('policies.show', $auditLog->policy) }}" class="text-[#f06e11] hover:text-blue-900 text-sm">
                                 View Policy
                             </a>
                         </div>
@@ -125,7 +125,7 @@
                                 <p class="text-sm font-medium text-gray-900">Endorsement #{{ $auditLog->endorsement->id }}</p>
                                 <p class="text-sm text-gray-500">{{ $auditLog->endorsement->endorsement_number }}</p>
                             </div>
-                            <a href="{{ route('endorsements.show', $auditLog->endorsement) }}" class="text-blue-600 hover:text-blue-900 text-sm">
+                            <a href="{{ route('endorsements.show', $auditLog->endorsement) }}" class="text-[#f06e11] hover:text-blue-900 text-sm">
                                 View Endorsement
                             </a>
                         </div>

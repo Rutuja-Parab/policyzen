@@ -1,4 +1,4 @@
-@import 'tailwindcss';
+@import "tailwindcss";
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
@@ -6,6 +6,55 @@
 @source '../**/*.js';
 
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-sans: "Instrument Sans", ui-sans-serif, system-ui, sans-serif,
+        "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol",
+        "Noto Color Emoji";
+
+    /* Custom Color Scheme */
+    --color-primary: #f06e11;
+    --color-primary-light: #f28e1f;
+    --color-primary-dark: #e05a00;
+    --color-secondary: #04315b;
+    --color-secondary-light: #2b8bd0;
+    --color-accent: #2b8bd0;
+}
+
+/* Custom CSS Utilities */
+@layer utilities {
+    .text-primary {
+        color: #f06e11;
+    }
+    .text-primary-light {
+        color: #f28e1f;
+    }
+    .text-secondary {
+        color: #04315b;
+    }
+    .text-secondary-light {
+        color: #2b8bd0;
+    }
+    .bg-primary {
+        background-color: #f06e11;
+    }
+    .bg-primary-light {
+        background-color: #f28e1f;
+    }
+    .bg-secondary {
+        background-color: #04315b;
+    }
+    .bg-secondary-light {
+        background-color: #2b8bd0;
+    }
+    .border-primary {
+        border-color: #f06e11;
+    }
+    .border-secondary {
+        border-color: #04315b;
+    }
+    .hover-bg-primary:hover {
+        background-color: #f06e11;
+    }
+    .hover-bg-secondary:hover {
+        background-color: #04315b;
+    }
 }

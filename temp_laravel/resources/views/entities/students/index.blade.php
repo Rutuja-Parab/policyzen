@@ -7,7 +7,7 @@
     <a href="{{ route('entities.students.import') }}" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
         <i class="fas fa-plus mr-2"></i>Import Students
     </a>
-    <a href="{{ route('entities.students.create') }}" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+    <a href="{{ route('entities.students.create') }}" class="bg-[#f06e11] text-white px-4 py-2 rounded-lg hover:bg-[#f28e1f]">
         <i class="fas fa-plus mr-2"></i>Add Student
     </a>
 @endsection
@@ -31,7 +31,7 @@
         <div>
             <label for="status" class="block text-sm font-medium text-gray-700 mb-1">Status</label>
             <select id="status" name="status"
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent">
                 <option value="">All Statuses</option>
                 <option value="ACTIVE" {{ request('status') == 'ACTIVE' ? 'selected' : '' }}>Active</option>
                 <option value="INACTIVE" {{ request('status') == 'INACTIVE' ? 'selected' : '' }}>Inactive</option>
@@ -41,7 +41,7 @@
         <div>
             <label for="company_id" class="block text-sm font-medium text-gray-700 mb-1">Company</label>
             <select id="company_id" name="company_id"
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent">
                 <option value="">All Companies</option>
                 @foreach ($companies as $company)
                     <option value="{{ $company->id }}" {{ request('company_id') == $company->id ? 'selected' : '' }}>
@@ -54,7 +54,7 @@
         <div>
             <label for="course_id" class="block text-sm font-medium text-gray-700 mb-1">Course</label>
             <select id="course_id" name="course_id"
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent">
                 <option value="">All Courses</option>
                 @foreach ($courses as $course)
                     <option value="{{ $course->id }}" {{ request('course_id') == $course->id ? 'selected' : '' }}>
@@ -67,7 +67,7 @@
         <div>
             <label for="gender" class="block text-sm font-medium text-gray-700 mb-1">Gender</label>
             <select id="gender" name="gender"
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent">
                 <option value="">All Genders</option>
                 <option value="Male" {{ request('gender') == 'Male' ? 'selected' : '' }}>Male</option>
                 <option value="Female" {{ request('gender') == 'Female' ? 'selected' : '' }}>Female</option>
@@ -78,21 +78,21 @@
         <div>
             <label for="age_min" class="block text-sm font-medium text-gray-700 mb-1">Min Age</label>
             <input type="number" id="age_min" name="age_min" value="{{ request('age_min') }}"
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent"
                 placeholder="18">
         </div>
 
         <div>
             <label for="age_max" class="block text-sm font-medium text-gray-700 mb-1">Max Age</label>
             <input type="number" id="age_max" name="age_max" value="{{ request('age_max') }}"
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent"
                 placeholder="65">
         </div>
 
         <div>
             <label for="per_page" class="block text-sm font-medium text-gray-700 mb-1">Per Page</label>
             <select id="per_page" name="per_page"
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent">
                 <option value="10" {{ request('per_page') == '10' ? 'selected' : '' }}>10</option>
                 <option value="20" {{ request('per_page', '20') == '20' ? 'selected' : '' }}>20</option>
                 <option value="50" {{ request('per_page') == '50' ? 'selected' : '' }}>50</option>
@@ -114,7 +114,7 @@
 
         @if (request()->hasAny(['search', 'status', 'company_id', 'course_id', 'gender', 'age_min', 'age_max']))
             <div class="text-sm">
-                <a href="{{ route('entities.students.index') }}" class="text-blue-600 hover:text-blue-800">
+                <a href="{{ route('entities.students.index') }}" class="text-[#f06e11] hover:text-blue-800">
                     <i class="fas fa-times mr-1"></i>Clear all filters
                 </a>
             </div>
@@ -126,7 +126,7 @@
         <div class="mb-4 flex items-center space-x-4">
             <div class="flex items-center">
                 <input type="checkbox" id="selectAll"
-                    class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                    class="rounded border-gray-300 text-[#f06e11] shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
                 <label for="selectAll" class="ml-2 text-sm text-gray-700">Select All ({{ $students->total() }}
                     total)</label>
             </div>
@@ -140,7 +140,7 @@
                     <option value="delete">Delete Selected</option>
                 </select>
                 <button onclick="performBulkAction()"
-                    class="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700">
+                    class="bg-[#f06e11] text-white px-3 py-1 rounded text-sm hover:bg-[#f28e1f]">
                     Apply
                 </button>
             </div>
@@ -154,7 +154,7 @@
                         <tr>
                             <th class="w-12 px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 <input type="checkbox" id="selectAllTable"
-                                    class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                                    class="rounded border-gray-300 text-[#f06e11] shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
                             </th>
                             <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 <a href="{{ request()->url() }}?{{ http_build_query(array_merge(request()->query(), ['sort_by' => 'student_id', 'sort_order' => request('sort_order') == 'asc' ? 'desc' : 'asc'])) }}"
@@ -220,7 +220,7 @@
                             <tr class="hover:bg-gray-50 transition-colors duration-150">
                                 <td class="px-2 py-3 whitespace-nowrap">
                                     <input type="checkbox" name="selected_students[]" value="{{ $student->id }}"
-                                        class="student-checkbox rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                                        class="student-checkbox rounded border-gray-300 text-[#f06e11] shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
                                 </td>
                                 <td class="px-3 py-3 whitespace-nowrap">
                                     <div class="text-sm font-medium text-gray-900">{{ $student->student_id }}</div>
@@ -257,7 +257,7 @@
                                 <td class="px-2 py-3 whitespace-nowrap text-right text-sm font-medium">
                                     <div class="flex items-center justify-end space-x-1">
                                         <a href="{{ route('entities.students.show', $student) }}"
-                                            class="text-blue-600 hover:text-blue-900 p-1 rounded" title="View Details">
+                                            class="text-[#f06e11] hover:text-blue-900 p-1 rounded" title="View Details">
                                             <i class="fas fa-eye"></i>
                                         </a>
                                         <a href="{{ route('entities.students.edit', $student) }}"
@@ -316,7 +316,7 @@
                     </a>
                 @endif
                 <a href="{{ route('entities.students.create') }}"
-                    class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                    class="bg-[#f06e11] text-white px-4 py-2 rounded-lg hover:bg-[#f28e1f]">
                     <i class="fas fa-plus mr-2"></i>Add Student
                 </a>
             </div>

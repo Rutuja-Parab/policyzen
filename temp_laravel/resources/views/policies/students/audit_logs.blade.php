@@ -25,7 +25,7 @@
         <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
             <div class="flex items-center">
                 <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <i class="fas fa-list text-blue-600"></i>
+                    <i class="fas fa-list text-[#f06e11]"></i>
                 </div>
                 <div class="ml-4">
                     <p class="text-sm text-gray-500">Total Transactions</p>
@@ -72,7 +72,7 @@
     <div class="bg-white rounded-xl shadow-sm border border-gray-200">
         <div class="p-6 border-b border-gray-200">
             <h2 class="text-lg font-semibold text-gray-900">
-                <i class="fas fa-history text-blue-600 mr-2"></i>Complete Transaction History
+                <i class="fas fa-history text-[#f06e11] mr-2"></i>Complete Transaction History
             </h2>
         </div>
         <div class="overflow-x-auto">
@@ -122,7 +122,7 @@
                         <td class="px-6 py-4 text-sm">
                             @if($log->endorsement)
                             <a href="{{ route('policies.students.endorsement.download', [$policy, $log->endorsement_id]) }}" 
-                               class="text-blue-600 hover:text-blue-800 flex items-center">
+                               class="text-[#f06e11] hover:text-blue-800 flex items-center">
                                 <i class="fas fa-file-pdf mr-1"></i>
                                 <span class="truncate max-w-[120px]">{{ $log->metadata['endorsement_number'] ?? 'Download' }}</span>
                             </a>

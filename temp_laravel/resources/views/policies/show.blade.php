@@ -12,7 +12,7 @@
 @endsection
 
 @section('header-actions')
-<a href="{{ route('policies.edit', $policy) }}" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+<a href="{{ route('policies.edit', $policy) }}" class="bg-[#f06e11] text-white px-4 py-2 rounded-lg hover:bg-[#f28e1f]">
     <i class="fas fa-edit mr-2"></i>Edit Policy
 </a>
 @endsection
@@ -47,7 +47,7 @@
                                     <div class="flex items-center justify-between p-4 bg-green-50 rounded-lg border border-green-200">
                                         <div class="flex items-center space-x-4">
                                             <div class="w-10 h-10 rounded-full flex items-center justify-center
-                                                @if($entity->type === 'EMPLOYEE') bg-blue-100 text-blue-600
+                                                @if($entity->type === 'EMPLOYEE') bg-blue-100 text-[#f06e11]
                                                 @elseif($entity->type === 'STUDENT') bg-green-100 text-green-600
                                                 @elseif($entity->type === 'COMPANY') bg-purple-100 text-purple-600
                                                 @elseif($entity->type === 'COURSE') bg-orange-100 text-orange-600
@@ -213,7 +213,7 @@
 
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 mb-2">Premium Amount</label>
-                                        <p class="text-2xl font-bold text-blue-600">${{ number_format($policy->premium_amount, 2) }}</p>
+                                        <p class="text-2xl font-bold text-[#f06e11]">${{ number_format($policy->premium_amount, 2) }}</p>
                                     </div>
                                 </div>
                             </div>
@@ -228,7 +228,7 @@
                             </div>
 
                             <div class="p-6 space-y-4">
-                                <a href="{{ route('policies.edit', $policy) }}" class="w-full bg-blue-600 text-white px-4 py-3 rounded-lg hover:bg-blue-700 flex items-center justify-center">
+                                <a href="{{ route('policies.edit', $policy) }}" class="w-full bg-[#f06e11] text-white px-4 py-3 rounded-lg hover:bg-[#f28e1f] flex items-center justify-center">
                                     <i class="fas fa-edit mr-2"></i>Edit Policy
                                 </a>
 
@@ -305,7 +305,7 @@
                                     <div class="w-10 h-10 rounded-full flex items-center justify-center
                                         @if($isEndorsementDoc) bg-yellow-100 text-yellow-600 
                                         @elseif(in_array($document->document_type, ['INVOICE', 'CREDIT_NOTE', 'RECEIPT'])) bg-green-100 text-green-600
-                                        @else bg-blue-100 text-blue-600 @endif">
+                                        @else bg-blue-100 text-[#f06e11] @endif">
                                         @if($isEndorsementDoc)
                                         <i class="fas fa-edit"></i>
                                         @elseif($document->document_type === 'INVOICE')
@@ -450,7 +450,7 @@
                                 </div>
                                 <div class="flex items-center space-x-2">
                                     <a href="{{ Storage::url($document->file_path) }}" target="_blank" 
-                                       class="text-blue-600 hover:text-blue-800 px-3 py-1 rounded border border-blue-200 hover:border-blue-300"
+                                       class="text-[#f06e11] hover:text-blue-800 px-3 py-1 rounded border border-blue-200 hover:border-blue-300"
                                        title="Download Document">
                                         <i class="fas fa-download mr-1"></i>Download
                                     </a>
@@ -475,11 +475,11 @@
                             </h4>
                             <div class="grid grid-cols-2 md:grid-cols-6 gap-4 text-sm">
                                 <div class="text-center">
-                                    <p class="text-2xl font-bold text-blue-600">{{ $allDocuments->count() }}</p>
+                                    <p class="text-2xl font-bold text-[#f06e11]">{{ $allDocuments->count() }}</p>
                                     <p class="text-gray-600">Total Documents</p>
                                 </div>
                                 <div class="text-center">
-                                    <p class="text-2xl font-bold text-blue-600">{{ $policyDocuments->count() }}</p>
+                                    <p class="text-2xl font-bold text-[#f06e11]">{{ $policyDocuments->count() }}</p>
                                     <p class="text-gray-600">Policy Docs</p>
                                 </div>
                                 <div class="text-center">
@@ -537,13 +537,13 @@
                                 <div class="space-y-4">
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 mb-2">Select File</label>
-                                        <input type="file" name="documents[]" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                        <input type="file" name="documents[]" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent">
                                         <p class="text-xs text-gray-500 mt-1">Supported formats: PDF, DOC, DOCX, JPG, JPEG, PNG (Max 10MB each)</p>
                                     </div>
                                     <div>
                                         <label class="block text-sm font-medium text-gray-700 mb-2">Document Type</label>
                                         <select name="document_type" id="document_type" required 
-                                                class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                                class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent"
                                                 onchange="toggleInvoiceFields()">
                                             <option value="POLICY_DOCUMENT">Policy Document</option>
                                             <option value="ENDORSEMENT_DOCUMENT">Endorsement Document</option>
@@ -559,26 +559,26 @@
                                     <div id="invoice-fields" class="hidden space-y-4">
                                         <div>
                                             <label class="block text-sm font-medium text-gray-700 mb-2">Invoice/Credit Note Number</label>
-                                            <input type="text" name="invoice_number" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="e.g., INV-202412-0001">
+                                            <input type="text" name="invoice_number" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent" placeholder="e.g., INV-202412-0001">
                                         </div>
                                         <div class="grid grid-cols-2 gap-4">
                                             <div>
                                                 <label class="block text-sm font-medium text-gray-700 mb-2">Amount (₹)</label>
-                                                <input type="number" name="amount" step="0.01" min="0" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="0.00">
+                                                <input type="number" name="amount" step="0.01" min="0" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent" placeholder="0.00">
                                             </div>
                                             <div>
                                                 <label class="block text-sm font-medium text-gray-700 mb-2">Tax Amount (₹)</label>
-                                                <input type="number" name="tax_amount" step="0.01" min="0" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="0.00">
+                                                <input type="number" name="tax_amount" step="0.01" min="0" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent" placeholder="0.00">
                                             </div>
                                         </div>
                                         <div class="grid grid-cols-2 gap-4">
                                             <div>
                                                 <label class="block text-sm font-medium text-gray-700 mb-2">Total Amount (₹)</label>
-                                                <input type="number" name="total_amount" step="0.01" min="0" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="0.00">
+                                                <input type="number" name="total_amount" step="0.01" min="0" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent" placeholder="0.00">
                                             </div>
                                             <div>
                                                 <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
-                                                <select name="status" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                                <select name="status" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent">
                                                     <option value="DRAFT">Draft</option>
                                                     <option value="SENT">Sent</option>
                                                     <option value="PARTIALLY_PAID">Partially Paid</option>
@@ -593,16 +593,16 @@
                                         <div class="grid grid-cols-2 gap-4">
                                             <div>
                                                 <label class="block text-sm font-medium text-gray-700 mb-2">Issue Date</label>
-                                                <input type="date" name="issue_date" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                                <input type="date" name="issue_date" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent">
                                             </div>
                                             <div>
                                                 <label class="block text-sm font-medium text-gray-700 mb-2">Due Date</label>
-                                                <input type="date" name="due_date" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                                <input type="date" name="due_date" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent">
                                             </div>
                                         </div>
                                         <div>
                                             <label class="block text-sm font-medium text-gray-700 mb-2">Notes</label>
-                                            <textarea name="notes" rows="3" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="Additional notes about this invoice or credit note..."></textarea>
+                                            <textarea name="notes" rows="3" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent" placeholder="Additional notes about this invoice or credit note..."></textarea>
                                         </div>
                                     </div>
                                     <input type="hidden" name="uploaded_by" value="{{ auth()->id() }}">
@@ -642,10 +642,10 @@
                                     <div class="flex flex-col sm:flex-row gap-3">
                                         <div class="flex-1 relative">
                                             <input type="text" id="modal-entity-search" placeholder="Search entities..." 
-                                                   class="w-full border border-gray-300 rounded-lg px-4 py-2 pl-10 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                                   class="w-full border border-gray-300 rounded-lg px-4 py-2 pl-10 focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent">
                                             <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
                                         </div>
-                                        <select id="modal-entity-type-filter" class="border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                        <select id="modal-entity-type-filter" class="border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent">
                                             <option value="ALL">All Types</option>
                                             <option value="EMPLOYEE">Employees</option>
                                             <option value="STUDENT">Students</option>
@@ -659,7 +659,7 @@
                                     <!-- Bulk Actions -->
                                     <div class="flex items-center justify-between bg-blue-50 p-3 rounded-lg">
                                         <div class="flex items-center space-x-4">
-                                            <button type="button" onclick="modalSelectAll()" class="text-sm text-blue-600 hover:text-blue-800 font-medium">
+                                            <button type="button" onclick="modalSelectAll()" class="text-sm text-[#f06e11] hover:text-blue-800 font-medium">
                                                 <i class="fas fa-check-square mr-1"></i>Select All
                                             </button>
                                             <button type="button" onclick="modalDeselectAll()" class="text-sm text-gray-600 hover:text-gray-800 font-medium">
@@ -688,7 +688,7 @@
                                             <div class="flex items-center justify-between mb-3 pb-2 border-b border-gray-200">
                                                 <h4 class="font-medium text-gray-900 flex items-center">
                                                     @if($type === 'EMPLOYEE')
-                                                    <i class="fas fa-user mr-2 text-blue-600"></i>
+                                                    <i class="fas fa-user mr-2 text-[#f06e11]"></i>
                                                     @elseif($type === 'STUDENT')
                                                     <i class="fas fa-graduation-cap mr-2 text-green-600"></i>
                                                     @elseif($type === 'COMPANY')
@@ -702,7 +702,7 @@
                                                     @endif
                                                     {{ $type }} <span class="ml-2 text-sm text-gray-500">({{ $entities->count() }})</span>
                                                 </h4>
-                                                <button type="button" onclick="modalSelectType('{{ $type }}')" class="text-xs text-blue-600 hover:text-blue-800">
+                                                <button type="button" onclick="modalSelectType('{{ $type }}')" class="text-xs text-[#f06e11] hover:text-blue-800">
                                                     Select All
                                                 </button>
                                             </div>
@@ -710,7 +710,7 @@
                                                 @foreach($entities as $entity)
                                                 <label class="modal-entity-item flex items-center space-x-2 p-2 rounded hover:bg-white cursor-pointer" data-entity-name="{{ strtolower($entity->description) }}">
                                                     <input type="checkbox" name="entity_ids[]" value="{{ $entity->id }}" 
-                                                           class="modal-entity-checkbox rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                                           class="modal-entity-checkbox rounded border-gray-300 text-[#f06e11] focus:ring-[#2b8bd0]"
                                                            onchange="updateModalSelectedCount()">
                                                     <span class="text-sm text-gray-700">{{ $entity->description }}</span>
                                                 </label>
