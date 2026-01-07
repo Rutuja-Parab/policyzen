@@ -45,6 +45,10 @@ class StudentController extends Controller
             'age' => 'nullable|integer|min:1|max:100',
             'gender' => 'nullable|string|in:Male,Female,Other',
             'rank' => 'nullable|string|min:1|max:50',
+            'batch' => 'nullable|string|max:50',
+            'date_of_joining' => 'nullable|date',
+            'date_of_exiting' => 'nullable|date|after_or_equal:date_of_joining',
+            'sum_insured' => 'nullable|numeric|min:0',
             'status' => 'in:ACTIVE,INACTIVE',
         ], [
             'student_id.regex' => 'Student ID must be 3-20 characters (A-Z, 0-9 only)',
@@ -56,6 +60,7 @@ class StudentController extends Controller
             'dob.before' => 'Date of birth must be before today',
             'age.min' => 'Age must be at least 1 year',
             'age.max' => 'Age cannot exceed 100 years',
+            'date_of_exiting.after_or_equal' => 'Date of exiting must be after or equal to date of joining',
         ]);
 
         DB::beginTransaction();
@@ -70,6 +75,10 @@ class StudentController extends Controller
                 'age' => $request->age,
                 'gender' => $request->gender,
                 'rank' => $request->rank,
+                'batch' => $request->batch,
+                'date_of_joining' => $request->date_of_joining,
+                'date_of_exiting' => $request->date_of_exiting,
+                'sum_insured' => $request->sum_insured,
                 'status' => $request->status ?? 'ACTIVE',
                 'course' => $request->course_id ? Course::find($request->course_id)->course_name : null,
             ]);
@@ -114,6 +123,10 @@ class StudentController extends Controller
             'age' => 'nullable|integer|min:1|max:100',
             'gender' => 'nullable|string|in:Male,Female,Other',
             'rank' => 'nullable|string|min:1|max:50',
+            'batch' => 'nullable|string|max:50',
+            'date_of_joining' => 'nullable|date',
+            'date_of_exiting' => 'nullable|date|after_or_equal:date_of_joining',
+            'sum_insured' => 'nullable|numeric|min:0',
             'status' => 'in:ACTIVE,INACTIVE',
         ], [
             'student_id.regex' => 'Student ID must be 3-20 characters (A-Z, 0-9 only)',
@@ -125,6 +138,7 @@ class StudentController extends Controller
             'dob.before' => 'Date of birth must be before today',
             'age.min' => 'Age must be at least 1 year',
             'age.max' => 'Age cannot exceed 100 years',
+            'date_of_exiting.after_or_equal' => 'Date of exiting must be after or equal to date of joining',
         ]);
 
         DB::beginTransaction();
@@ -139,6 +153,10 @@ class StudentController extends Controller
                 'age' => $request->age,
                 'gender' => $request->gender,
                 'rank' => $request->rank,
+                'batch' => $request->batch,
+                'date_of_joining' => $request->date_of_joining,
+                'date_of_exiting' => $request->date_of_exiting,
+                'sum_insured' => $request->sum_insured,
                 'status' => $request->status ?? 'ACTIVE',
                 'course' => $request->course_id ? Course::find($request->course_id)->course_name : null,
             ]);
@@ -202,6 +220,10 @@ class StudentController extends Controller
             'age' => 'nullable|integer|min:1|max:100',
             'gender' => 'nullable|string|in:Male,Female,Other',
             'rank' => 'nullable|string|min:1|max:50',
+            'batch' => 'nullable|string|max:50',
+            'date_of_joining' => 'nullable|date',
+            'date_of_exiting' => 'nullable|date|after_or_equal:date_of_joining',
+            'sum_insured' => 'nullable|numeric|min:0',
             'course_id' => 'nullable|exists:courses,id',
             'status' => 'in:ACTIVE,INACTIVE',
         ], [
@@ -214,6 +236,7 @@ class StudentController extends Controller
             'dob.before' => 'Date of birth must be before today',
             'age.min' => 'Age must be at least 1 year',
             'age.max' => 'Age cannot exceed 100 years',
+            'date_of_exiting.after_or_equal' => 'Date of exiting must be after or equal to date of joining',
         ]);
 
         DB::beginTransaction();
@@ -228,6 +251,10 @@ class StudentController extends Controller
                 'age' => $request->age,
                 'gender' => $request->gender,
                 'rank' => $request->rank,
+                'batch' => $request->batch,
+                'date_of_joining' => $request->date_of_joining,
+                'date_of_exiting' => $request->date_of_exiting,
+                'sum_insured' => $request->sum_insured,
                 'status' => $request->status ?? 'ACTIVE',
                 'course' => $request->course_id ? Course::find($request->course_id)->course_name : null,
             ]);
@@ -278,6 +305,10 @@ class StudentController extends Controller
             'age' => 'nullable|integer|min:1|max:100',
             'gender' => 'nullable|string|in:Male,Female,Other',
             'rank' => 'nullable|string|min:1|max:50',
+            'batch' => 'nullable|string|max:50',
+            'date_of_joining' => 'nullable|date',
+            'date_of_exiting' => 'nullable|date|after_or_equal:date_of_joining',
+            'sum_insured' => 'nullable|numeric|min:0',
             'course_id' => 'nullable|exists:courses,id',
             'status' => 'in:ACTIVE,INACTIVE',
         ], [
@@ -290,6 +321,7 @@ class StudentController extends Controller
             'dob.before' => 'Date of birth must be before today',
             'age.min' => 'Age must be at least 1 year',
             'age.max' => 'Age cannot exceed 100 years',
+            'date_of_exiting.after_or_equal' => 'Date of exiting must be after or equal to date of joining',
         ]);
 
         DB::beginTransaction();
@@ -304,6 +336,10 @@ class StudentController extends Controller
                 'age' => $request->age,
                 'gender' => $request->gender,
                 'rank' => $request->rank,
+                'batch' => $request->batch,
+                'date_of_joining' => $request->date_of_joining,
+                'date_of_exiting' => $request->date_of_exiting,
+                'sum_insured' => $request->sum_insured,
                 'status' => $request->status ?? 'ACTIVE',
                 'course' => $request->course_id ? Course::find($request->course_id)->course_name : null,
             ]);
@@ -370,12 +406,12 @@ class StudentController extends Controller
         DB::beginTransaction();
         try {
             $handle = fopen($file->getRealPath(), 'r');
-            
+
             // Skip header row
             $header = fgetcsv($handle);
-            
+
             // Normalize header (remove spaces, convert to lowercase)
-            $header = array_map(function($h) {
+            $header = array_map(function ($h) {
                 return strtolower(trim(str_replace([' ', '.', '-'], '_', $h)));
             }, $header);
 
@@ -396,6 +432,16 @@ class StudentController extends Controller
                 'rank' => 'rank',
                 'company_name' => 'company_name',
                 'company' => 'company_name',
+                'course' => 'course',
+                'batch' => 'batch',
+                'date_of_joining' => 'date_of_joining',
+                'joining_date' => 'date_of_joining',
+                'date_of_exit' => 'date_of_exiting',
+                'date_of_exiting' => 'date_of_exiting',
+                'exit_date' => 'date_of_exiting',
+                'sum_insured' => 'sum_insured',
+                'suminsured' => 'sum_insured',
+                'insurance_amount' => 'sum_insured',
             ];
 
             // Find column indices
@@ -410,7 +456,7 @@ class StudentController extends Controller
             $rowNumber = 1;
             while (($row = fgetcsv($handle)) !== false) {
                 $rowNumber++;
-                
+
                 // Skip empty rows
                 if (empty(array_filter($row))) {
                     continue;
@@ -522,7 +568,6 @@ class StudentController extends Controller
             return redirect()->route('entities.students.index')
                 ->with('success', $message)
                 ->with('import_errors', $errors);
-
         } catch (\Exception $e) {
             DB::rollBack();
             return back()->withErrors(['error' => 'CSV import failed: ' . $e->getMessage()]);

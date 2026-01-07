@@ -33,106 +33,6 @@
             <form method="POST" action="{{ route('policies.store') }}" enctype="multipart/form-data">
                 @csrf
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="md:col-span-2">
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Covered Entities *</label>
-                        <p class="text-xs text-gray-500 mb-3">Select entities to cover under this group policy. Use search
-                            and filters to manage large lists.</p>
-
-                        <!-- Search and Filter Controls -->
-                        <div class="mb-4 space-y-3">
-                            <div class="flex flex-col sm:flex-row gap-3">
-                                <div class="flex-1 relative">
-                                    <input type="text" id="entity-search" placeholder="Search entities by name..."
-                                        class="w-full border border-gray-300 rounded-lg px-4 py-2 pl-10 focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent">
-                                    <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
-                                </div>
-                                <select id="entity-type-filter"
-                                    class="border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent">
-                                    <option value="ALL">All Types</option>
-                                    <option value="EMPLOYEE">Employees</option>
-                                    <option value="STUDENT">Students</option>
-                                    <option value="VEHICLE">Vehicles</option>
-                                    <option value="SHIP">Vessels</option>
-                                </select>
-                            </div>
-
-                            <!-- Bulk Actions -->
-                            <div class="flex items-center justify-between bg-[#04315b]/5 p-3 rounded-lg">
-                                <div class="flex items-center space-x-4">
-                                    <button type="button" onclick="selectAllEntities()"
-                                        class="text-sm text-[#f06e11] hover:text-blue-800 font-medium">
-                                        <i class="fas fa-check-square mr-1"></i>Select All
-                                    </button>
-                                    <button type="button" onclick="deselectAllEntities()"
-                                        class="text-sm text-gray-600 hover:text-gray-800 font-medium">
-                                        <i class="fas fa-square mr-1"></i>Deselect All
-                                    </button>
-                                    <button type="button" onclick="selectByType()"
-                                        class="text-sm text-[#f06e11] hover:text-blue-800 font-medium">
-                                        <i class="fas fa-filter mr-1"></i>Select by Type
-                                    </button>
-                                </div>
-                                <div class="text-sm font-medium text-gray-700">
-                                    <span id="selected-count">0</span> selected
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Entity Selection Area -->
-                        <div class="border border-gray-300 rounded-lg p-4 bg-gray-50 max-h-96 overflow-y-auto">
-                            <div id="entity-list" class="space-y-4">
-                                @php
-                                    $groupedEntities = $entities->groupBy('type');
-                                @endphp
-
-                                @foreach ($groupedEntities as $type => $typeEntities)
-                                    <div class="entity-group" data-entity-type="{{ $type }}">
-                                        <div class="flex items-center justify-between mb-3 pb-2 border-b border-gray-200">
-                                            <h4 class="font-medium text-gray-900 flex items-center">
-                                                @if ($type === 'EMPLOYEE')
-                                                    <i class="fas fa-user mr-2 text-[#f06e11]"></i>
-                                                @elseif($type === 'STUDENT')
-                                                    <i class="fas fa-graduation-cap mr-2 text-[#f06e11]"></i>
-                                                @elseif($type === 'COMPANY')
-                                                    <i class="fas fa-building mr-2 text-[#04315b]"></i>
-                                                @elseif($type === 'COURSE')
-                                                    <i class="fas fa-book mr-2 text-[#f28e1f]"></i>
-                                                @elseif($type === 'VEHICLE')
-                                                    <i class="fas fa-car mr-2 text-[#2b8bd0]"></i>
-                                                @elseif($type === 'SHIP')
-                                                    <i class="fas fa-ship mr-2 text-[#04315b]"></i>
-                                                @endif
-                                                {{ $type }} <span
-                                                    class="ml-2 text-sm text-gray-500">({{ $typeEntities->count() }})</span>
-                                            </h4>
-                                            <button type="button" onclick="selectType('{{ $type }}')"
-                                                class="text-xs text-[#f06e11] hover:text-blue-800">
-                                                Select All
-                                            </button>
-                                        </div>
-                                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 entity-items">
-                                            @foreach ($typeEntities as $entity)
-                                                <label
-                                                    class="entity-item flex items-center space-x-2 p-2 rounded hover:bg-white cursor-pointer"
-                                                    data-entity-name="{{ strtolower($entity->description) }}">
-                                                    <input type="checkbox" name="entity_ids[]" value="{{ $entity->id }}"
-                                                        class="entity-checkbox rounded border-gray-300 text-[#f06e11] focus:ring-[#2b8bd0]"
-                                                        onchange="updateSelectedCount()">
-                                                    <span class="text-sm text-gray-700">{{ $entity->description }}</span>
-                                                </label>
-                                            @endforeach
-                                        </div>
-                                    </div>
-                                @endforeach
-                            </div>
-
-                            <div id="no-results" class="hidden text-center py-8">
-                                <i class="fas fa-search text-4xl text-gray-300 mb-2"></i>
-                                <p class="text-gray-500">No entities found matching your search</p>
-                            </div>
-                        </div>
-                    </div>
-
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-2">Policy Number *</label>
                         <input type="text" name="policy_number" required pattern="^[A-Z0-9\-]{5,20}$"
@@ -173,10 +73,10 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Sum Insured (₹) *</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Starting Coverage Pool (₹) *</label>
                         <div class="relative">
                             <span class="absolute left-3 top-2 text-gray-500">₹</span>
-                            <input type="text" name="sum_insured" required pattern="^[0-9]+(?:\.[0-9]{1,2})?$"
+                            <input type="text" name="starting_coverage_pool" required pattern="^[0-9]+(?:\.[0-9]{1,2})?$"
                                 class="w-full border border-gray-300 rounded-lg px-8 py-2 focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent"
                                 placeholder="100000.00" maxlength="15" oninput="formatCurrency(this)">
                         </div>
@@ -185,14 +85,28 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Premium Amount (₹) *</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Available Coverage Pool (₹) *</label>
                         <div class="relative">
                             <span class="absolute left-3 top-2 text-gray-500">₹</span>
-                            <input type="text" name="premium_amount" required pattern="^[0-9]+(?:\.[0-9]{1,2})?$"
+                            <input type="text" name="available_coverage_pool" required
+                                pattern="^[0-9]+(?:\.[0-9]{1,2})?$"
                                 class="w-full border border-gray-300 rounded-lg px-8 py-2 focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent"
-                                placeholder="5000.00" maxlength="10" oninput="formatCurrency(this)">
+                                placeholder="100000.00" maxlength="15" oninput="formatCurrency(this)">
                         </div>
-                        <p class="text-xs text-gray-500 mt-1">Enter amount in Indian Rupees (e.g., 5000.00 for ₹5,000)</p>
+                        <p class="text-xs text-gray-500 mt-1">Enter amount in Indian Rupees (e.g., 100000.00 for ₹1,00,000)
+                        </p>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Utilized Coverage Pool (₹) *</label>
+                        <div class="relative">
+                            <span class="absolute left-3 top-2 text-gray-500">₹</span>
+                            <input type="text" name="utilized_coverage_pool" required pattern="^[0-9]+(?:\.[0-9]{1,2})?$"
+                                class="w-full border border-gray-300 rounded-lg px-8 py-2 focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent"
+                                placeholder="0.00" maxlength="15" oninput="formatCurrency(this)">
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1">Enter amount in Indian Rupees (e.g., 0.00 for no utilization)
+                        </p>
                     </div>
                 </div>
 
@@ -201,20 +115,20 @@
                     <h3 class="text-lg font-medium text-gray-900 mb-4">Upload Documents</h3>
                     <div class="space-y-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Select Files</label>
-                            <input type="file" name="documents[]" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Policy Document *</label>
+                            <input type="file" name="documents[]" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent">
                             <p class="text-xs text-gray-500 mt-1">Supported formats: PDF, DOC, DOCX, JPG, JPEG, PNG (Max
-                                10MB each)</p>
+                                10MB)</p>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Document Type</label>
-                            <select name="document_type"
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Supporting Documents
+                                (Optional)</label>
+                            <input type="file" name="supporting_documents[]" multiple
+                                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
                                 class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent">
-                                <option value="POLICY_DOCUMENT">Policy Document</option>
-                                <option value="FINANCIAL_DOCUMENT">Financial Document</option>
-                                <option value="OTHER">Other</option>
-                            </select>
+                            <p class="text-xs text-gray-500 mt-1">Upload additional supporting documents if needed. Max 10MB
+                                each.</p>
                         </div>
                     </div>
                 </div>
@@ -234,48 +148,6 @@
 
     @push('scripts')
         <script>
-            // Search functionality
-            document.getElementById('entity-search').addEventListener('input', function(e) {
-                const searchTerm = e.target.value.toLowerCase();
-                const entityItems = document.querySelectorAll('.entity-item');
-                let visibleCount = 0;
-
-                entityItems.forEach(item => {
-                    const entityName = item.getAttribute('data-entity-name');
-                    const parentGroup = item.closest('.entity-group');
-
-                    if (entityName.includes(searchTerm)) {
-                        item.classList.remove('hidden');
-                        visibleCount++;
-                    } else {
-                        item.classList.add('hidden');
-                    }
-                });
-
-                // Hide/show groups with no visible items
-                document.querySelectorAll('.entity-group').forEach(group => {
-                    const visibleItems = group.querySelectorAll('.entity-item:not(.hidden)');
-                    group.style.display = visibleItems.length > 0 ? 'block' : 'none';
-                });
-
-                // Show/hide no results message
-                document.getElementById('no-results').classList.toggle('hidden', visibleCount > 0);
-            });
-
-            // Filter by type
-            document.getElementById('entity-type-filter').addEventListener('change', function(e) {
-                const selectedType = e.target.value;
-                const groups = document.querySelectorAll('.entity-group');
-
-                groups.forEach(group => {
-                    if (selectedType === 'ALL' || group.getAttribute('data-entity-type') === selectedType) {
-                        group.style.display = 'block';
-                    } else {
-                        group.style.display = 'none';
-                    }
-                });
-            });
-
             // Currency formatting function
             function formatCurrency(input) {
                 let value = input.value.replace(/[^0-9.]/g, '');
@@ -336,8 +208,8 @@
 
             function validateCurrency(input) {
                 const currencyRegex = /^[0-9]+(?:\.[0-9]{1,2})?$/;
-                const isValid = currencyRegex.test(input.value) && parseFloat(input.value) > 0;
-                toggleFieldValidation(input, isValid, 'Please enter a valid amount greater than 0');
+                const isValid = currencyRegex.test(input.value) && parseFloat(input.value) >= 0;
+                toggleFieldValidation(input, isValid, 'Please enter a valid amount (0 or greater)');
                 return isValid;
             }
 
@@ -381,18 +253,6 @@
                     }
                 });
 
-                // Validate email
-                const emailField = document.querySelector('input[name="email"]');
-                if (emailField && emailField.value) {
-                    if (!validateEmail(emailField)) isValid = false;
-                }
-
-                // Validate phone
-                const phoneField = document.querySelector('input[name="phone"]');
-                if (phoneField && phoneField.value) {
-                    if (!validatePhone(phoneField)) isValid = false;
-                }
-
                 // Validate policy number
                 const policyField = document.querySelector('input[name="policy_number"]');
                 if (policyField) {
@@ -400,21 +260,19 @@
                 }
 
                 // Validate currency fields
-                const sumInsuredField = document.querySelector('input[name="sum_insured"]');
-                if (sumInsuredField) {
-                    if (!validateCurrency(sumInsuredField)) isValid = false;
+                const startingCoveragePoolField = document.querySelector('input[name="starting_coverage_pool"]');
+                if (startingCoveragePoolField) {
+                    if (!validateCurrency(startingCoveragePoolField)) isValid = false;
                 }
 
-                const premiumField = document.querySelector('input[name="premium_amount"]');
-                if (premiumField) {
-                    if (!validateCurrency(premiumField)) isValid = false;
+                const availableCoveragePoolField = document.querySelector('input[name="available_coverage_pool"]');
+                if (availableCoveragePoolField) {
+                    if (!validateCurrency(availableCoveragePoolField)) isValid = false;
                 }
 
-                // Validate entity selection
-                const entityCheckboxes = document.querySelectorAll('.entity-checkbox:checked');
-                if (entityCheckboxes.length === 0) {
-                    alert('Please select at least one entity to cover under this policy');
-                    isValid = false;
+                const utilizedCoveragePoolField = document.querySelector('input[name="utilized_coverage_pool"]');
+                if (utilizedCoveragePoolField) {
+                    if (!validateCurrency(utilizedCoveragePoolField)) isValid = false;
                 }
 
                 return isValid;
@@ -422,36 +280,6 @@
 
             // Add event listeners for real-time validation
             document.addEventListener('DOMContentLoaded', function() {
-                // Email validation
-                const emailFields = document.querySelectorAll('input[type="email"]');
-                emailFields.forEach(field => {
-                    field.addEventListener('blur', function() {
-                        if (this.value) validateEmail(this);
-                    });
-                    field.addEventListener('input', function() {
-                        if (this.classList.contains('border-red-500')) {
-                            validateEmail(this);
-                        }
-                    });
-                });
-
-                // Phone validation
-                const phoneFields = document.querySelectorAll('input[type="tel"]');
-                phoneFields.forEach(field => {
-                    field.addEventListener('input', function() {
-                        formatPhone(this);
-                        if (this.classList.contains('border-red-500') || this.value.startsWith('+91')) {
-                            validatePhone(this);
-                        }
-                    });
-                    field.addEventListener('blur', function() {
-                        if (this.value && !this.value.startsWith('+91')) {
-                            this.value = '+91' + this.value;
-                        }
-                        validatePhone(this);
-                    });
-                });
-
                 // Policy number validation
                 const policyFields = document.querySelectorAll('input[name="policy_number"]');
                 policyFields.forEach(field => {
@@ -470,7 +298,8 @@
                 const currencyFields = document.querySelectorAll('input[pattern*="[0-9]"]');
                 currencyFields.forEach(field => {
                     field.addEventListener('input', function() {
-                        if (this.name === 'sum_insured' || this.name === 'premium_amount') {
+                        if (this.name === 'starting_coverage_pool' || this.name ===
+                            'available_coverage_pool' || this.name === 'utilized_coverage_pool') {
                             formatCurrency(this);
                         }
                         if (this.classList.contains('border-red-500')) {
@@ -478,7 +307,8 @@
                         }
                     });
                     field.addEventListener('blur', function() {
-                        if (this.name === 'sum_insured' || this.name === 'premium_amount') {
+                        if (this.name === 'starting_coverage_pool' || this.name ===
+                            'available_coverage_pool' || this.name === 'utilized_coverage_pool') {
                             validateCurrency(this);
                         }
                     });
@@ -494,57 +324,7 @@
                         }
                     });
                 });
-
-                updateSelectedCount();
             });
-
-            // Entity selection functions
-            function selectAllEntities() {
-                document.querySelectorAll('.entity-checkbox:not(:disabled)').forEach(checkbox => {
-                    if (!checkbox.closest('.entity-item').classList.contains('hidden')) {
-                        checkbox.checked = true;
-                    }
-                });
-                updateSelectedCount();
-            }
-
-            function deselectAllEntities() {
-                document.querySelectorAll('.entity-checkbox').forEach(checkbox => {
-                    checkbox.checked = false;
-                });
-                updateSelectedCount();
-            }
-
-            function selectByType() {
-                const selectedType = document.getElementById('entity-type-filter').value;
-                if (selectedType === 'ALL') {
-                    selectAllEntities();
-                } else {
-                    document.querySelectorAll(
-                        `.entity-group[data-entity-type="${selectedType}"] .entity-checkbox:not(:disabled)`).forEach(
-                        checkbox => {
-                            if (!checkbox.closest('.entity-item').classList.contains('hidden')) {
-                                checkbox.checked = true;
-                            }
-                        });
-                    updateSelectedCount();
-                }
-            }
-
-            function selectType(type) {
-                document.querySelectorAll(`.entity-group[data-entity-type="${type}"] .entity-checkbox:not(:disabled)`).forEach(
-                    checkbox => {
-                        if (!checkbox.closest('.entity-item').classList.contains('hidden')) {
-                            checkbox.checked = true;
-                        }
-                    });
-                updateSelectedCount();
-            }
-
-            function updateSelectedCount() {
-                const checked = document.querySelectorAll('.entity-checkbox:checked').length;
-                document.getElementById('selected-count').textContent = checked;
-            }
         </script>
     @endpush
 @endsection

@@ -2,143 +2,178 @@
 
 @section('title', 'Student Details - PolicyZen')
 @section('page-title')
-<div class="flex items-center">
-    <a href="{{ route('entities.students.index') }}" class="text-gray-400 hover:text-gray-600 mr-3">
-        <i class="fas fa-arrow-left"></i>
-    </a>
-    <span>Student Details</span>
-</div>
+    <div class="flex items-center">
+        <a href="{{ route('entities.students.index') }}" class="text-gray-400 hover:text-gray-600 mr-3">
+            <i class="fas fa-arrow-left"></i>
+        </a>
+        <span>Student Details</span>
+    </div>
 @endsection
 
 @section('header-actions')
-<a href="{{ route('entities.students.edit', $student) }}" class="bg-[#f06e11] text-white px-4 py-2 rounded-lg hover:bg-[#f28e1f]">
-    <i class="fas fa-edit mr-2"></i>Edit Student
-</a>
+    <a href="{{ route('entities.students.edit', $student) }}"
+        class="bg-[#f06e11] text-white px-4 py-2 rounded-lg hover:bg-[#f28e1f]">
+        <i class="fas fa-edit mr-2"></i>Edit Student
+    </a>
 @endsection
 
 @section('content')
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-    <!-- Student Information -->
-    <div class="lg:col-span-2">
-        <div class="bg-white rounded-lg shadow">
-            <div class="p-6 border-b border-gray-200">
-                <div class="flex items-center justify-between">
-                    <h2 class="text-lg font-medium text-gray-900">Student Information</h2>
-                    <span class="px-3 py-1 text-sm rounded-full
-                        @if($student->status === 'ACTIVE') bg-green-100 text-green-800
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Student Information -->
+        <div class="lg:col-span-2">
+            <div class="bg-white rounded-lg shadow">
+                <div class="p-6 border-b border-gray-200">
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-lg font-medium text-gray-900">Student Information</h2>
+                        <span
+                            class="px-3 py-1 text-sm rounded-full
+                        @if ($student->status === 'ACTIVE') bg-green-100 text-green-800
                         @else bg-gray-100 text-gray-800 @endif">
-                        {{ $student->status }}
-                    </span>
+                            {{ $student->status }}
+                        </span>
+                    </div>
+                </div>
+
+                <div class="p-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Student ID</label>
+                            <p class="text-lg font-semibold text-gray-900">{{ $student->student_id }}</p>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Name</label>
+                            <p class="text-gray-900">{{ $student->name }}</p>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Course</label>
+                            <p class="text-gray-900">{{ $student->course ?: 'N/A' }}</p>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Company</label>
+                            <p class="text-gray-900">{{ $student->company->name ?? 'N/A' }}</p>
+                        </div>
+
+                        @if ($student->email)
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                                <p class="text-gray-900">{{ $student->email }}</p>
+                            </div>
+                        @endif
+
+                        @if ($student->phone)
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Phone</label>
+                                <p class="text-gray-900">{{ $student->phone }}</p>
+                            </div>
+                        @endif
+
+                        @if ($student->dob)
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Date of Birth</label>
+                                <p class="text-gray-900">{{ $student->dob->format('M d, Y') }}</p>
+                            </div>
+                        @endif
+
+                        @if ($student->age)
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Age</label>
+                                <p class="text-gray-900">{{ $student->age }} years</p>
+                            </div>
+                        @endif
+
+                        @if ($student->gender)
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Gender</label>
+                                <p class="text-gray-900">{{ $student->gender }}</p>
+                            </div>
+                        @endif
+
+                        @if ($student->rank)
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Rank</label>
+                                <p class="text-gray-900">{{ $student->rank }}</p>
+                            </div>
+                        @endif
+
+                        @if ($student->batch)
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Batch</label>
+                                <p class="text-gray-900">{{ $student->batch }}</p>
+                            </div>
+                        @endif
+
+                        @if ($student->date_of_joining)
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Date of Joining</label>
+                                <p class="text-gray-900">{{ $student->date_of_joining->format('M d, Y') }}</p>
+                            </div>
+                        @endif
+
+                        @if ($student->date_of_exiting)
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Date of Exiting</label>
+                                <p class="text-gray-900">{{ $student->date_of_exiting->format('M d, Y') }}</p>
+                            </div>
+                        @endif
+
+                        @if ($student->sum_insured)
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Sum Insured</label>
+                                <p class="text-gray-900">₹{{ number_format($student->sum_insured, 2) }}</p>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div>
+            <div class="bg-white rounded-lg shadow">
+                <div class="p-6 border-b border-gray-200">
+                    <h3 class="text-lg font-medium text-gray-900">Quick Actions</h3>
+                </div>
+
+                <div class="p-6 space-y-4">
+                    <a href="{{ route('entities.students.edit', $student) }}"
+                        class="w-full bg-[#f06e11] text-white px-4 py-3 rounded-lg hover:bg-[#f28e1f] flex items-center justify-center">
+                        <i class="fas fa-edit mr-2"></i>Edit Student
+                    </a>
+
+                    <form method="POST" action="{{ route('entities.students.destroy', $student) }}" class="w-full"
+                        onsubmit="return confirm('Are you sure you want to delete this student? This action cannot be undone.')">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit"
+                            class="w-full bg-red-600 text-white px-4 py-3 rounded-lg hover:bg-red-700 flex items-center justify-center">
+                            <i class="fas fa-trash mr-2"></i>Delete Student
+                        </button>
+                    </form>
                 </div>
             </div>
 
-            <div class="p-6">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Student ID</label>
-                        <p class="text-lg font-semibold text-gray-900">{{ $student->student_id }}</p>
-                    </div>
+            <!-- Student Stats -->
+            <div class="bg-white rounded-lg shadow mt-6">
+                <div class="p-6 border-b border-gray-200">
+                    <h3 class="text-lg font-medium text-gray-900">Student Stats</h3>
+                </div>
 
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Name</label>
-                        <p class="text-gray-900">{{ $student->name }}</p>
+                <div class="p-6 space-y-4">
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Created</span>
+                        <span
+                            class="font-medium">{{ $student->created_at ? $student->created_at->format('M d, Y') : 'N/A' }}</span>
                     </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Course</label>
-                        <p class="text-gray-900">{{ $student->course ?: 'N/A' }}</p>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Last Updated</span>
+                        <span
+                            class="font-medium">{{ $student->updated_at ? $student->updated_at->format('M d, Y') : 'N/A' }}</span>
                     </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Company</label>
-                        <p class="text-gray-900">{{ $student->company->name ?? 'N/A' }}</p>
-                    </div>
-
-                    @if($student->email)
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
-                        <p class="text-gray-900">{{ $student->email }}</p>
-                    </div>
-                    @endif
-
-                    @if($student->phone)
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Phone</label>
-                        <p class="text-gray-900">{{ $student->phone }}</p>
-                    </div>
-                    @endif
-
-                    @if($student->dob)
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Date of Birth</label>
-                        <p class="text-gray-900">{{ $student->dob->format('M d, Y') }}</p>
-                    </div>
-                    @endif
-
-                    @if($student->age)
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Age</label>
-                        <p class="text-gray-900">{{ $student->age }} years</p>
-                    </div>
-                    @endif
-
-                    @if($student->gender)
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Gender</label>
-                        <p class="text-gray-900">{{ $student->gender }}</p>
-                    </div>
-                    @endif
-
-                    @if($student->rank)
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">Rank</label>
-                        <p class="text-gray-900">{{ $student->rank }}</p>
-                    </div>
-                    @endif
                 </div>
             </div>
         </div>
     </div>
-
-    <!-- Quick Actions -->
-    <div>
-        <div class="bg-white rounded-lg shadow">
-            <div class="p-6 border-b border-gray-200">
-                <h3 class="text-lg font-medium text-gray-900">Quick Actions</h3>
-            </div>
-
-            <div class="p-6 space-y-4">
-                <a href="{{ route('entities.students.edit', $student) }}" class="w-full bg-[#f06e11] text-white px-4 py-3 rounded-lg hover:bg-[#f28e1f] flex items-center justify-center">
-                    <i class="fas fa-edit mr-2"></i>Edit Student
-                </a>
-
-                <form method="POST" action="{{ route('entities.students.destroy', $student) }}" class="w-full" onsubmit="return confirm('Are you sure you want to delete this student? This action cannot be undone.')">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" class="w-full bg-red-600 text-white px-4 py-3 rounded-lg hover:bg-red-700 flex items-center justify-center">
-                        <i class="fas fa-trash mr-2"></i>Delete Student
-                    </button>
-                </form>
-            </div>
-        </div>
-
-        <!-- Student Stats -->
-        <div class="bg-white rounded-lg shadow mt-6">
-            <div class="p-6 border-b border-gray-200">
-                <h3 class="text-lg font-medium text-gray-900">Student Stats</h3>
-            </div>
-
-            <div class="p-6 space-y-4">
-                <div class="flex justify-between">
-                    <span class="text-gray-600">Created</span>
-                    <span class="font-medium">{{ $student->created_at ? $student->created_at->format('M d, Y') : 'N/A' }}</span>
-                </div>
-                <div class="flex justify-between">
-                    <span class="text-gray-600">Last Updated</span>
-                    <span class="font-medium">{{ $student->updated_at ? $student->updated_at->format('M d, Y') : 'N/A' }}</span>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 @endsection

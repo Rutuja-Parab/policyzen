@@ -19,8 +19,9 @@ class InsurancePolicy extends Model
         'provider',
         'start_date',
         'end_date',
-        'sum_insured',
-        'premium_amount',
+        'starting_coverage_pool',
+        'available_coverage_pool',
+        'utilized_coverage_pool',
         'status',
         'created_by',
     ];
@@ -28,8 +29,9 @@ class InsurancePolicy extends Model
     protected $casts = [
         'start_date' => 'date',
         'end_date' => 'date',
-        'sum_insured' => 'decimal:2',
-        'premium_amount' => 'decimal:2',
+        'starting_coverage_pool' => 'decimal:2',
+        'available_coverage_pool' => 'decimal:2',
+        'utilized_coverage_pool' => 'decimal:2',
     ];
 
     public function entities(): BelongsToMany

@@ -15,7 +15,7 @@ class DashboardController extends Controller
         $totalPolicies = InsurancePolicy::count();
         $activePolicies = InsurancePolicy::where('status', 'ACTIVE')->count();
         $expiredPolicies = InsurancePolicy::where('status', 'EXPIRED')->count();
-        $totalPremium = InsurancePolicy::where('status', 'ACTIVE')->sum('premium_amount');
+        $totalPremium = InsurancePolicy::where('status', 'ACTIVE')->sum('utilized_coverage_pool');
         $totalEntities = Entity::count();
 
         $thirtyDaysAgo = now()->subDays(30);

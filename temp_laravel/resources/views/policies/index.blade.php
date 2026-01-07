@@ -52,14 +52,14 @@
         </div>
 
         <div>
-            <label for="premium_min" class="block text-sm font-medium text-gray-700 mb-1">Min Premium ($)</label>
+            <label for="premium_min" class="block text-sm font-medium text-gray-700 mb-1">Min Utilized Pool (₹)</label>
             <input type="number" id="premium_min" name="premium_min" value="{{ request('premium_min') }}"
                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent"
                 placeholder="0">
         </div>
 
         <div>
-            <label for="premium_max" class="block text-sm font-medium text-gray-700 mb-1">Max Premium ($)</label>
+            <label for="premium_max" class="block text-sm font-medium text-gray-700 mb-1">Max Utilized Pool (₹)</label>
             <input type="number" id="premium_max" name="premium_max" value="{{ request('premium_max') }}"
                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent"
                 placeholder="999999">
@@ -173,10 +173,10 @@
                             <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Status</th>
                             <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                <a href="{{ request()->url() }}?{{ http_build_query(array_merge(request()->query(), ['sort_by' => 'premium_amount', 'sort_order' => request('sort_order') == 'asc' ? 'desc' : 'asc'])) }}"
+                                <a href="{{ request()->url() }}?{{ http_build_query(array_merge(request()->query(), ['sort_by' => 'utilized_coverage_pool', 'sort_order' => request('sort_order') == 'asc' ? 'desc' : 'asc'])) }}"
                                     class="hover:text-gray-700">
-                                    Premium
-                                    @if (request('sort_by') == 'premium_amount')
+                                    Coverage Pool
+                                    @if (request('sort_by') == 'utilized_coverage_pool')
                                         <i
                                             class="fas fa-sort-{{ request('sort_order') == 'asc' ? 'up' : 'down' }} ml-1"></i>
                                     @else
@@ -243,9 +243,14 @@
                                     </span>
                                 </td>
                                 <td class="px-3 py-3 whitespace-nowrap">
-                                    <div class="text-sm text-gray-900">${{ number_format($policy->premium_amount, 2) }}
+                                    <div class="text-sm text-gray-900">
+                                        ₹{{ number_format($policy->utilized_coverage_pool, 2) }}
                                     </div>
-                                    <div class="text-xs text-gray-500">Sum: ${{ number_format($policy->sum_insured, 2) }}
+                                    <div class="text-xs text-gray-500">Starting:
+                                        ₹{{ number_format($policy->starting_coverage_pool, 2) }}
+                                    </div>
+                                    <div class="text-xs text-gray-500">Available:
+                                        ₹{{ number_format($policy->available_coverage_pool, 2) }}
                                     </div>
                                 </td>
                                 <td class="px-3 py-3 whitespace-nowrap">

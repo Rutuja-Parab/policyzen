@@ -15,6 +15,7 @@ class Student extends Model
         'student_id',
         'name',
         'course',
+        'batch',
         'email',
         'phone',
         'dob',
@@ -22,11 +23,17 @@ class Student extends Model
         'rank',
         'age',
         'status',
+        'date_of_joining',
+        'date_of_exiting',
+        'sum_insured',
     ];
 
     protected $casts = [
         'age' => 'integer',
         'dob' => 'date',
+        'date_of_joining' => 'date',
+        'date_of_exiting' => 'date',
+        'sum_insured' => 'decimal:2',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];

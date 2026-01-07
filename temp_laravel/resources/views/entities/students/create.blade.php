@@ -2,327 +2,368 @@
 
 @section('title', 'Add Student - PolicyZen')
 @section('page-title')
-<div class="flex items-center">
-    <a href="{{ route('entities.students.index') }}" class="text-gray-400 hover:text-gray-600 mr-3">
-        <i class="fas fa-arrow-left"></i>
-    </a>
-    <span>Add New Student</span>
-</div>
+    <div class="flex items-center">
+        <a href="{{ route('entities.students.index') }}" class="text-gray-400 hover:text-gray-600 mr-3">
+            <i class="fas fa-arrow-left"></i>
+        </a>
+        <span>Add New Student</span>
+    </div>
 @endsection
 
 @section('content')
-@if(session('success'))
-<div class="mb-4 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded">
-    {{ session('success') }}
-</div>
-@endif
+    @if (session('success'))
+        <div class="mb-4 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded">
+            {{ session('success') }}
+        </div>
+    @endif
 
-@if($errors->any())
-<div class="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-    <ul>
-        @foreach($errors->all() as $error)
-        <li>{{ $error }}</li>
-        @endforeach
-    </ul>
-</div>
-@endif
+    @if ($errors->any())
+        <div class="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+            <ul>
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
 
-<div class="bg-white rounded-lg shadow">
-    <div class="p-6">
-        <form method="POST" action="{{ route('entities.students.store') }}">
-            @csrf
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Student ID *</label>
-                    <input type="text" name="student_id" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent" placeholder="STU001">
+    <div class="bg-white rounded-lg shadow">
+        <div class="p-6">
+            <form method="POST" action="{{ route('entities.students.store') }}">
+                @csrf
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Student ID *</label>
+                        <input type="text" name="student_id" required
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent"
+                            placeholder="STU001">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Name *</label>
+                        <input type="text" name="name" required
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent"
+                            placeholder="Jane Smith">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Course</label>
+                        <select name="course_id"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent">
+                            <option value="">Select Course (optional)</option>
+                            @foreach ($courses as $course)
+                                <option value="{{ $course->id }}">{{ $course->course_name }} ({{ $course->course_code }})
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Company *</label>
+                        <select name="company_id" required
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent">
+                            <option value="">Select Company</option>
+                            @foreach ($companies as $company)
+                                <option value="{{ $company->id }}">{{ $company->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Email *</label>
+                        <input type="email" name="email" required
+                            pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent"
+                            placeholder="student@example.com">
+                        <p class="text-xs text-gray-500 mt-1">Enter a valid email address (e.g., student@company.com)</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Phone *</label>
+                        <input type="tel" name="phone" required pattern="^\+91[0-9]{10}$"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent"
+                            placeholder="+919876543210" maxlength="13">
+                        <p class="text-xs text-gray-500 mt-1">Enter 10-digit mobile number with +91 prefix (e.g.,
+                            +919876543210)</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Date of Birth</label>
+                        <input type="date" name="dob"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Age</label>
+                        <input type="number" name="age" min="1" max="100"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent"
+                            placeholder="25">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Gender</label>
+                        <select name="gender"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent">
+                            <option value="">Select Gender</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Rank</label>
+                        <input type="text" name="rank"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent"
+                            placeholder="1">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Batch</label>
+                        <input type="text" name="batch"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent"
+                            placeholder="2024-2025">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Date of Joining</label>
+                        <input type="date" name="date_of_joining"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Date of Exiting</label>
+                        <input type="date" name="date_of_exiting"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Sum Insured (₹)</label>
+                        <input type="number" name="sum_insured" step="0.01" min="0"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent"
+                            placeholder="50000">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                        <select name="status"
+                            class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent">
+                            <option value="ACTIVE">Active</option>
+                            <option value="INACTIVE">Inactive</option>
+                        </select>
+                    </div>
                 </div>
 
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Name *</label>
-                    <input type="text" name="name" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent" placeholder="Jane Smith">
+                <div class="mt-6 flex justify-end space-x-4">
+                    <a href="{{ route('entities.students.index') }}"
+                        class="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400">
+                        Cancel
+                    </a>
+                    <button type="submit" class="bg-[#f06e11] text-white px-4 py-2 rounded-lg hover:bg-[#f28e1f]">
+                        <i class="fas fa-save mr-2"></i>Add Student
+                    </button>
                 </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Course</label>
-                    <select name="course_id" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent">
-                        <option value="">Select Course (optional)</option>
-                        @foreach($courses as $course)
-                        <option value="{{ $course->id }}">{{ $course->course_name }} ({{ $course->course_code }})</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Company *</label>
-                    <select name="company_id" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent">
-                        <option value="">Select Company</option>
-                        @foreach($companies as $company)
-                        <option value="{{ $company->id }}">{{ $company->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Email *</label>
-                    <input type="email" name="email" required 
-                           pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
-                           class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent" 
-                           placeholder="student@example.com">
-                    <p class="text-xs text-gray-500 mt-1">Enter a valid email address (e.g., student@company.com)</p>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Phone *</label>
-                    <input type="tel" name="phone" required 
-                           pattern="^\+91[0-9]{10}$"
-                           class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent" 
-                           placeholder="+919876543210"
-                           maxlength="13">
-                    <p class="text-xs text-gray-500 mt-1">Enter 10-digit mobile number with +91 prefix (e.g., +919876543210)</p>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Date of Birth</label>
-                    <input type="date" name="dob" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent">
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Age</label>
-                    <input type="number" name="age" min="1" max="100" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent" placeholder="25">
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Gender</label>
-                    <select name="gender" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent">
-                        <option value="">Select Gender</option>
-                        <option value="Male">Male</option>
-                        <option value="Female">Female</option>
-                        <option value="Other">Other</option>
-                    </select>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Rank</label>
-                    <input type="text" name="rank" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent" placeholder="1">
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
-                    <select name="status" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-[#2b8bd0] focus:border-transparent">
-                        <option value="ACTIVE">Active</option>
-                        <option value="INACTIVE">Inactive</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="mt-6 flex justify-end space-x-4">
-                <a href="{{ route('entities.students.index') }}" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400">
-                    Cancel
-                </a>
-                <button type="submit" class="bg-[#f06e11] text-white px-4 py-2 rounded-lg hover:bg-[#f28e1f]">
-                    <i class="fas fa-save mr-2"></i>Add Student
-                </button>
-            </div>
-        </form>
+            </form>
+        </div>
     </div>
-</div>
 
-@push('scripts')
-<script>
-// Phone number formatting function
-function formatPhone(input) {
-    let value = input.value.replace(/\D/g, '');
-    if (value.length > 10) {
-        value = value.substring(0, 10);
-    }
-    input.value = value;
-}
+    @push('scripts')
+        <script>
+            // Phone number formatting function
+            function formatPhone(input) {
+                let value = input.value.replace(/\D/g, '');
+                if (value.length > 10) {
+                    value = value.substring(0, 10);
+                }
+                input.value = value;
+            }
 
-// Real-time validation functions
-function validateEmail(input) {
-    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    const isValid = emailRegex.test(input.value);
-    toggleFieldValidation(input, isValid, 'Please enter a valid email address');
-    return isValid;
-}
+            // Real-time validation functions
+            function validateEmail(input) {
+                const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+                const isValid = emailRegex.test(input.value);
+                toggleFieldValidation(input, isValid, 'Please enter a valid email address');
+                return isValid;
+            }
 
-function validatePhone(input) {
-    const phoneRegex = /^\+91[0-9]{10}$/;
-    const value = input.value;
-    let isValid = false;
-    let message = 'Please enter 10 digits';
-    
-    if (value.startsWith('+91') && phoneRegex.test(value)) {
-        isValid = true;
-    } else if (value.length === 10 && /^[0-9]{10}$/.test(value)) {
-        input.value = '+91' + value;
-        isValid = true;
-    } else if (value.length < 10) {
-        message = 'Phone number must be 10 digits';
-    } else if (!value.startsWith('+91')) {
-        message = 'Phone number must start with +91';
-    }
-    
-    toggleFieldValidation(input, isValid, message);
-    return isValid;
-}
+            function validatePhone(input) {
+                const phoneRegex = /^\+91[0-9]{10}$/;
+                const value = input.value;
+                let isValid = false;
+                let message = 'Please enter 10 digits';
 
-function toggleFieldValidation(input, isValid, message) {
-    const field = input.closest('div');
-    let errorDiv = field.querySelector('.field-error');
-    
-    if (!isValid && input.value) {
-        if (!errorDiv) {
-            errorDiv = document.createElement('div');
-            errorDiv.className = 'field-error text-red-500 text-xs mt-1';
-            field.appendChild(errorDiv);
-        }
-        errorDiv.textContent = message;
-        input.classList.add('border-red-500');
-        input.classList.remove('border-green-500');
-    } else if (isValid && input.value) {
-        if (errorDiv) {
-            errorDiv.remove();
-        }
-        input.classList.remove('border-red-500');
-        input.classList.add('border-green-500');
-    } else {
-        if (errorDiv) {
-            errorDiv.remove();
-        }
-        input.classList.remove('border-red-500', 'border-green-500');
-    }
-}
+                if (value.startsWith('+91') && phoneRegex.test(value)) {
+                    isValid = true;
+                } else if (value.length === 10 && /^[0-9]{10}$/.test(value)) {
+                    input.value = '+91' + value;
+                    isValid = true;
+                } else if (value.length < 10) {
+                    message = 'Phone number must be 10 digits';
+                } else if (!value.startsWith('+91')) {
+                    message = 'Phone number must start with +91';
+                }
 
-function validateForm() {
-    let isValid = true;
-    
-    // Validate required fields
-    const requiredFields = document.querySelectorAll('input[required], select[required]');
-    requiredFields.forEach(field => {
-        if (!field.value.trim()) {
-            field.classList.add('border-red-500');
-            isValid = false;
-        }
-    });
-    
-    // Validate email
-    const emailField = document.querySelector('input[type="email"]');
-    if (emailField && emailField.value) {
-        if (!validateEmail(emailField)) isValid = false;
-    }
-    
-    // Validate phone
-    const phoneField = document.querySelector('input[type="tel"]');
-    if (phoneField && phoneField.value) {
-        if (!validatePhone(phoneField)) isValid = false;
-    }
-    
-    // Validate student ID format
-    const studentIdField = document.querySelector('input[name="student_id"]');
-    if (studentIdField) {
-        const studentIdRegex = /^[A-Z0-9]{3,20}$/;
-        if (!studentIdRegex.test(studentIdField.value)) {
-            toggleFieldValidation(studentIdField, false, 'Student ID must be 3-20 characters (A-Z, 0-9 only)');
-            isValid = false;
-        } else {
-            toggleFieldValidation(studentIdField, true, '');
-        }
-    }
-    
-    // Validate age
-    const ageField = document.querySelector('input[name="age"]');
-    if (ageField && ageField.value) {
-        const age = parseInt(ageField.value);
-        if (age < 1 || age > 100) {
-            toggleFieldValidation(ageField, false, 'Age must be between 1 and 100');
-            isValid = false;
-        } else {
-            toggleFieldValidation(ageField, true, '');
-        }
-    }
-    
-    return isValid;
-}
+                toggleFieldValidation(input, isValid, message);
+                return isValid;
+            }
 
-// Add event listeners for real-time validation
-document.addEventListener('DOMContentLoaded', function() {
-    // Email validation
-    const emailFields = document.querySelectorAll('input[type="email"]');
-    emailFields.forEach(field => {
-        field.addEventListener('blur', function() {
-            if (this.value) validateEmail(this);
-        });
-        field.addEventListener('input', function() {
-            if (this.classList.contains('border-red-500')) {
-                validateEmail(this);
+            function toggleFieldValidation(input, isValid, message) {
+                const field = input.closest('div');
+                let errorDiv = field.querySelector('.field-error');
+
+                if (!isValid && input.value) {
+                    if (!errorDiv) {
+                        errorDiv = document.createElement('div');
+                        errorDiv.className = 'field-error text-red-500 text-xs mt-1';
+                        field.appendChild(errorDiv);
+                    }
+                    errorDiv.textContent = message;
+                    input.classList.add('border-red-500');
+                    input.classList.remove('border-green-500');
+                } else if (isValid && input.value) {
+                    if (errorDiv) {
+                        errorDiv.remove();
+                    }
+                    input.classList.remove('border-red-500');
+                    input.classList.add('border-green-500');
+                } else {
+                    if (errorDiv) {
+                        errorDiv.remove();
+                    }
+                    input.classList.remove('border-red-500', 'border-green-500');
+                }
             }
-        });
-    });
-    
-    // Phone validation
-    const phoneFields = document.querySelectorAll('input[type="tel"]');
-    phoneFields.forEach(field => {
-        field.addEventListener('input', function() {
-            formatPhone(this);
-            if (this.classList.contains('border-red-500') || this.value.startsWith('+91')) {
-                validatePhone(this);
+
+            function validateForm() {
+                let isValid = true;
+
+                // Validate required fields
+                const requiredFields = document.querySelectorAll('input[required], select[required]');
+                requiredFields.forEach(field => {
+                    if (!field.value.trim()) {
+                        field.classList.add('border-red-500');
+                        isValid = false;
+                    }
+                });
+
+                // Validate email
+                const emailField = document.querySelector('input[type="email"]');
+                if (emailField && emailField.value) {
+                    if (!validateEmail(emailField)) isValid = false;
+                }
+
+                // Validate phone
+                const phoneField = document.querySelector('input[type="tel"]');
+                if (phoneField && phoneField.value) {
+                    if (!validatePhone(phoneField)) isValid = false;
+                }
+
+                // Validate student ID format
+                const studentIdField = document.querySelector('input[name="student_id"]');
+                if (studentIdField) {
+                    const studentIdRegex = /^[A-Z0-9]{3,20}$/;
+                    if (!studentIdRegex.test(studentIdField.value)) {
+                        toggleFieldValidation(studentIdField, false, 'Student ID must be 3-20 characters (A-Z, 0-9 only)');
+                        isValid = false;
+                    } else {
+                        toggleFieldValidation(studentIdField, true, '');
+                    }
+                }
+
+                // Validate age
+                const ageField = document.querySelector('input[name="age"]');
+                if (ageField && ageField.value) {
+                    const age = parseInt(ageField.value);
+                    if (age < 1 || age > 100) {
+                        toggleFieldValidation(ageField, false, 'Age must be between 1 and 100');
+                        isValid = false;
+                    } else {
+                        toggleFieldValidation(ageField, true, '');
+                    }
+                }
+
+                return isValid;
             }
-        });
-        field.addEventListener('blur', function() {
-            if (this.value && !this.value.startsWith('+91')) {
-                this.value = '+91' + this.value;
-            }
-            validatePhone(this);
-        });
-    });
-    
-    // Student ID validation
-    const studentIdFields = document.querySelectorAll('input[name="student_id"]');
-    studentIdFields.forEach(field => {
-        field.addEventListener('input', function() {
-            this.value = this.value.toUpperCase();
-        });
-        field.addEventListener('blur', function() {
-            const studentIdRegex = /^[A-Z0-9]{3,20}$/;
-            if (studentIdRegex.test(this.value)) {
-                toggleFieldValidation(this, true, '');
-            } else {
-                toggleFieldValidation(this, false, 'Student ID must be 3-20 characters (A-Z, 0-9 only)');
-            }
-        });
-    });
-    
-    // Age validation
-    const ageFields = document.querySelectorAll('input[name="age"]');
-    ageFields.forEach(field => {
-        field.addEventListener('input', function() {
-            const value = parseInt(this.value);
-            if (value >= 1 && value <= 100) {
-                toggleFieldValidation(this, true, '');
-            }
-        });
-        field.addEventListener('blur', function() {
-            const value = parseInt(this.value);
-            if (value >= 1 && value <= 100) {
-                toggleFieldValidation(this, true, '');
-            } else {
-                toggleFieldValidation(this, false, 'Age must be between 1 and 100');
-            }
-        });
-    });
-    
-    // Form submission validation
-    const forms = document.querySelectorAll('form');
-    forms.forEach(form => {
-        form.addEventListener('submit', function(e) {
-            if (!validateForm()) {
-                e.preventDefault();
-                alert('Please correct the highlighted errors before submitting');
-            }
-        });
-    });
-});
-</script>
-@endpush
+
+            // Add event listeners for real-time validation
+            document.addEventListener('DOMContentLoaded', function() {
+                // Email validation
+                const emailFields = document.querySelectorAll('input[type="email"]');
+                emailFields.forEach(field => {
+                    field.addEventListener('blur', function() {
+                        if (this.value) validateEmail(this);
+                    });
+                    field.addEventListener('input', function() {
+                        if (this.classList.contains('border-red-500')) {
+                            validateEmail(this);
+                        }
+                    });
+                });
+
+                // Phone validation
+                const phoneFields = document.querySelectorAll('input[type="tel"]');
+                phoneFields.forEach(field => {
+                    field.addEventListener('input', function() {
+                        formatPhone(this);
+                        if (this.classList.contains('border-red-500') || this.value.startsWith('+91')) {
+                            validatePhone(this);
+                        }
+                    });
+                    field.addEventListener('blur', function() {
+                        if (this.value && !this.value.startsWith('+91')) {
+                            this.value = '+91' + this.value;
+                        }
+                        validatePhone(this);
+                    });
+                });
+
+                // Student ID validation
+                const studentIdFields = document.querySelectorAll('input[name="student_id"]');
+                studentIdFields.forEach(field => {
+                    field.addEventListener('input', function() {
+                        this.value = this.value.toUpperCase();
+                    });
+                    field.addEventListener('blur', function() {
+                        const studentIdRegex = /^[A-Z0-9]{3,20}$/;
+                        if (studentIdRegex.test(this.value)) {
+                            toggleFieldValidation(this, true, '');
+                        } else {
+                            toggleFieldValidation(this, false,
+                                'Student ID must be 3-20 characters (A-Z, 0-9 only)');
+                        }
+                    });
+                });
+
+                // Age validation
+                const ageFields = document.querySelectorAll('input[name="age"]');
+                ageFields.forEach(field => {
+                    field.addEventListener('input', function() {
+                        const value = parseInt(this.value);
+                        if (value >= 1 && value <= 100) {
+                            toggleFieldValidation(this, true, '');
+                        }
+                    });
+                    field.addEventListener('blur', function() {
+                        const value = parseInt(this.value);
+                        if (value >= 1 && value <= 100) {
+                            toggleFieldValidation(this, true, '');
+                        } else {
+                            toggleFieldValidation(this, false, 'Age must be between 1 and 100');
+                        }
+                    });
+                });
+
+                // Form submission validation
+                const forms = document.querySelectorAll('form');
+                forms.forEach(form => {
+                    form.addEventListener('submit', function(e) {
+                        if (!validateForm()) {
+                            e.preventDefault();
+                            alert('Please correct the highlighted errors before submitting');
+                        }
+                    });
+                });
+            });
+        </script>
+    @endpush
 @endsection

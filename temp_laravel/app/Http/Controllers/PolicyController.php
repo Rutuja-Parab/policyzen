@@ -22,14 +22,14 @@ class PolicyController extends Controller
         // Search functionality
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('policy_number', 'like', "%{$search}%")
-                  ->orWhere('provider', 'like', "%{$search}%")
-                  ->orWhere('insurance_type', 'like', "%{$search}%")
-                  ->orWhereHas('entities', function($entityQuery) use ($search) {
-                      $entityQuery->where('description', 'like', "%{$search}%")
-                                ->orWhere('code', 'like', "%{$search}%");
-                  });
+                    ->orWhere('provider', 'like', "%{$search}%")
+                    ->orWhere('insurance_type', 'like', "%{$search}%")
+                    ->orWhereHas('entities', function ($entityQuery) use ($search) {
+                        $entityQuery->where('description', 'like', "%{$search}%")
+                            ->orWhere('code', 'like', "%{$search}%");
+                    });
             });
         }
 
@@ -54,18 +54,18 @@ class PolicyController extends Controller
 
         // Premium amount range
         if ($request->filled('premium_min')) {
-            $query->where('premium_amount', '>=', $request->premium_min);
+            $query->where('utilized_coverage_pool', '>=', $request->premium_min);
         }
 
         if ($request->filled('premium_max')) {
-            $query->where('premium_amount', '<=', $request->premium_max);
+            $query->where('utilized_coverage_pool', '<=', $request->premium_max);
         }
 
         // Sorting
         $sortBy = $request->get('sort_by', 'created_at');
         $sortOrder = $request->get('sort_order', 'desc');
-        
-        $allowedSorts = ['policy_number', 'provider', 'insurance_type', 'status', 'premium_amount', 'start_date', 'end_date', 'created_at'];
+
+        $allowedSorts = ['policy_number', 'provider', 'insurance_type', 'status', 'utilized_coverage_pool', 'start_date', 'end_date', 'created_at'];
         if (in_array($sortBy, $allowedSorts)) {
             $query->orderBy($sortBy, $sortOrder);
         } else {
@@ -82,20 +82,28 @@ class PolicyController extends Controller
                 $policies = $query->get();
             }
             $filename = 'policies_' . date('Y-m-d_H-i-s') . '.csv';
-            
+
             $headers = [
                 'Content-Type' => 'text/csv',
                 'Content-Disposition' => 'attachment; filename="' . $filename . '"',
             ];
 
-            $callback = function() use ($policies) {
+            $callback = function () use ($policies) {
                 $file = fopen('php://output', 'w');
-                
+
                 // CSV headers
                 fputcsv($file, [
-                    'Policy Number', 'Insurance Type', 'Provider', 'Status', 
-                    'Premium Amount', 'Sum Insured', 'Start Date', 'End Date', 
-                    'Entities Covered', 'Created At'
+                    'Policy Number',
+                    'Insurance Type',
+                    'Provider',
+                    'Status',
+                    'Starting Coverage Pool',
+                    'Available Coverage Pool',
+                    'Utilized Coverage Pool',
+                    'Start Date',
+                    'End Date',
+                    'Entities Covered',
+                    'Created At'
                 ]);
 
                 foreach ($policies as $policy) {
@@ -104,15 +112,16 @@ class PolicyController extends Controller
                         $policy->insurance_type,
                         $policy->provider,
                         $policy->status,
-                        $policy->premium_amount,
-                        $policy->sum_insured,
+                        $policy->starting_coverage_pool,
+                        $policy->available_coverage_pool,
+                        $policy->utilized_coverage_pool,
                         $policy->start_date,
                         $policy->end_date,
                         $policy->entities->count(),
                         $policy->created_at->format('Y-m-d H:i:s')
                     ]);
                 }
-                
+
                 fclose($file);
             };
 
@@ -122,13 +131,13 @@ class PolicyController extends Controller
         // Pagination with configurable per_page
         $perPage = $request->get('per_page', 20);
         $perPage = in_array($perPage, [10, 20, 50, 100]) ? $perPage : 20;
-        
+
         $policies = $query->paginate($perPage)->appends($request->query());
 
         // Get filter options
         $statusOptions = ['ACTIVE', 'EXPIRED', 'UNDER_REVIEW', 'CANCELLED'];
         $insuranceTypes = ['HEALTH', 'ACCIDENT', 'PROPERTY', 'VEHICLE', 'MARINE'];
-        
+
         // Get all entities for the create form (only employees and students for group policies)
         $entities = Entity::whereIn('type', ['EMPLOYEE', 'STUDENT'])->get();
 
@@ -137,27 +146,20 @@ class PolicyController extends Controller
 
     public function create()
     {
-        $entities = Entity::whereIn('type', ['EMPLOYEE', 'STUDENT', 'VEHICLE', 'SHIP'])->get();
-        return view('policies.create', compact('entities'));
+        return view('policies.create');
     }
 
     public function store(Request $request)
     {
-        // Ensure no duplicate entity_ids in the request
-        $request->merge([
-            'entity_ids' => array_unique($request->entity_ids)
-        ]);
-
         $request->validate([
-            'entity_ids' => 'required|array|min:1',
-            'entity_ids.*' => 'exists:entities,id',
             'policy_number' => 'required|string|regex:/^[A-Z0-9\-]{5,20}$/|unique:policies',
             'insurance_type' => 'required|in:HEALTH,ACCIDENT,PROPERTY,VEHICLE,MARINE',
             'provider' => 'required|string|min:2|max:100|regex:/^[a-zA-Z0-9\s\-\.&]+$/',
             'start_date' => 'required|date|before:end_date',
             'end_date' => 'required|date|after:start_date|after:today',
-            'sum_insured' => 'required|numeric|min:1|max:999999999.99|regex:/^[0-9]+(?:\.[0-9]{1,2})?$/',
-            'premium_amount' => 'required|numeric|min:1|max:99999999.99|regex:/^[0-9]+(?:\.[0-9]{1,2})?$/',
+            'starting_coverage_pool' => 'required|numeric|min:0|max:999999999.99|regex:/^[0-9]+(?:\.[0-9]{1,2})?$/',
+            'available_coverage_pool' => 'required|numeric|min:0|max:999999999.99|regex:/^[0-9]+(?:\.[0-9]{1,2})?$/',
+            'utilized_coverage_pool' => 'required|numeric|min:0|max:999999999.99|regex:/^[0-9]+(?:\.[0-9]{1,2})?$/',
             'documents' => 'nullable|array',
             'documents.*' => 'file|mimes:pdf,doc,docx,jpg,jpeg,png|max:10240',
             'document_type' => 'nullable|in:POLICY_DOCUMENT,ENDORSEMENT_DOCUMENT,FINANCIAL_DOCUMENT,OTHER',
@@ -167,12 +169,15 @@ class PolicyController extends Controller
             'provider.regex' => 'Provider name must contain only letters, numbers, spaces, hyphens, ampersands, and periods',
             'start_date.before' => 'Start date must be before end date',
             'end_date.after' => 'End date must be after start date and in the future',
-            'sum_insured.min' => 'Sum insured amount must be greater than 0',
-            'sum_insured.max' => 'Sum insured amount cannot exceed ₹999,999,999.99',
-            'sum_insured.regex' => 'Sum insured must be a valid amount with maximum 2 decimal places',
-            'premium_amount.min' => 'Premium amount must be greater than 0',
-            'premium_amount.max' => 'Premium amount cannot exceed ₹99,999,999.99',
-            'premium_amount.regex' => 'Premium amount must be a valid amount with maximum 2 decimal places',
+            'starting_coverage_pool.min' => 'Starting coverage pool amount must be greater than or equal to 0',
+            'starting_coverage_pool.max' => 'Starting coverage pool amount cannot exceed ₹999,999,999.99',
+            'starting_coverage_pool.regex' => 'Starting coverage pool must be a valid amount with maximum 2 decimal places',
+            'available_coverage_pool.min' => 'Available coverage pool amount must be greater than or equal to 0',
+            'available_coverage_pool.max' => 'Available coverage pool amount cannot exceed ₹999,999,999.99',
+            'available_coverage_pool.regex' => 'Available coverage pool must be a valid amount with maximum 2 decimal places',
+            'utilized_coverage_pool.min' => 'Utilized coverage pool amount must be greater than or equal to 0',
+            'utilized_coverage_pool.max' => 'Utilized coverage pool amount cannot exceed ₹999,999,999.99',
+            'utilized_coverage_pool.regex' => 'Utilized coverage pool must be a valid amount with maximum 2 decimal places',
         ]);
 
         DB::transaction(function () use ($request) {
@@ -183,8 +188,9 @@ class PolicyController extends Controller
                 'provider' => $request->provider,
                 'start_date' => $request->start_date,
                 'end_date' => $request->end_date,
-                'sum_insured' => $request->sum_insured,
-                'premium_amount' => $request->premium_amount,
+                'starting_coverage_pool' => $request->starting_coverage_pool,
+                'available_coverage_pool' => $request->available_coverage_pool,
+                'utilized_coverage_pool' => $request->utilized_coverage_pool,
                 'status' => 'ACTIVE',
                 'created_by' => Auth::id(),
             ]);
@@ -199,55 +205,12 @@ class PolicyController extends Controller
                     'policy_number' => $policy->policy_number,
                     'insurance_type' => $policy->insurance_type,
                     'provider' => $policy->provider,
-                    'sum_insured' => $policy->sum_insured,
-                    'premium_amount' => $policy->premium_amount,
-                    'entities_covered' => count($request->entity_ids),
+                    'starting_coverage_pool' => $policy->starting_coverage_pool,
+                    'available_coverage_pool' => $policy->available_coverage_pool,
+                    'utilized_coverage_pool' => $policy->utilized_coverage_pool,
                 ],
                 'performed_by' => Auth::id(),
             ]);
-
-            // Attach entities to the policy and create endorsements
-            $entityIds = array_unique($request->entity_ids); // Remove duplicates
-            $effectiveDate = now()->toDateString();
-
-            foreach ($entityIds as $entityId) {
-                // Check if entity is already attached to this policy
-                if ($policy->entities()->where('entities.id', $entityId)->wherePivot('status', 'ACTIVE')->exists()) {
-                    continue; // Skip if already attached
-                }
-
-                // Attach entity to policy
-                $policy->entities()->attach($entityId, [
-                    'effective_date' => $effectiveDate,
-                    'status' => 'ACTIVE'
-                ]);
-
-                // Create endorsement for adding entity
-                $entity = Entity::find($entityId);
-                $endorsement = PolicyEndorsement::create([
-                    'policy_id' => $policy->id,
-                    'endorsement_number' => 'END-' . $policy->policy_number . '-' . $entityId . '-' . time(),
-                    'description' => 'Added ' . $entity->description . ' to group policy',
-                    'effective_date' => $effectiveDate,
-                    'created_by' => Auth::id(),
-                ]);
-
-                // Create audit log for endorsement creation
-                AuditLog::create([
-                    'action' => 'CREATE',
-                    'entity_type' => 'PolicyEndorsement',
-                    'entity_id' => $entityId,
-                    'policy_id' => $policy->id,
-                    'endorsement_id' => $endorsement->id,
-                    'metadata' => [
-                        'endorsement_number' => $endorsement->endorsement_number,
-                        'action' => 'ADD_ENTITY',
-                        'entity_description' => $entity->description,
-                        'entity_type' => $entity->type,
-                    ],
-                    'performed_by' => Auth::id(),
-                ]);
-            }
 
             // Handle document uploads
             if ($request->hasFile('documents')) {
@@ -276,52 +239,51 @@ class PolicyController extends Controller
                 $policy->provider,
                 [
                     'policy_id' => $policy->id,
-                    'entity_ids' => $request->entity_ids,
-                    'entity_count' => count($request->entity_ids),
-                    'sum_insured' => $policy->sum_insured,
-                    'premium_amount' => $policy->premium_amount,
+                    'starting_coverage_pool' => $policy->starting_coverage_pool,
+                    'available_coverage_pool' => $policy->available_coverage_pool,
+                    'utilized_coverage_pool' => $policy->utilized_coverage_pool,
                     'start_date' => $policy->start_date,
                     'end_date' => $policy->end_date,
                 ]
             );
         });
 
-        return redirect()->route('policies.index')->with('success', 'Group policy created successfully with ' . count($request->entity_ids) . ' covered entities');
+        return redirect()->route('policies.index')->with('success', 'Policy created successfully');
     }
 
     public function show(InsurancePolicy $policy)
     {
         // Load policy with all relationships
         $policy->load([
-            'creator', 
+            'creator',
             'endorsements.creator',
             'endorsements.documents.uploader',
             'documents.uploader'
         ]);
-        
+
         // Get all entities (both active and terminated) with pivot data
         $allEntities = $policy->entities()->withPivot(['effective_date', 'termination_date', 'status'])->get();
-        
+
         // Separate active and terminated entities
         $activeEntities = $allEntities->where('pivot.status', 'ACTIVE');
         $terminatedEntities = $allEntities->where('pivot.status', 'TERMINATED');
-        
+
         // Get all documents (policy documents + endorsement documents)
         $policyDocuments = $policy->documents()->with('uploader')->get();
         $endorsementDocuments = collect();
-        
+
         foreach ($policy->endorsements as $endorsement) {
             $endorsementDocs = $endorsement->documents()->with('uploader')->get();
             $endorsementDocuments = $endorsementDocuments->merge($endorsementDocs);
         }
-        
+
         // Combine and sort all documents by upload date
         $allDocuments = $policyDocuments->merge($endorsementDocuments)->sortByDesc('uploaded_at');
-        
+
         return view('policies.show', compact(
-            'policy', 
-            'activeEntities', 
-            'terminatedEntities', 
+            'policy',
+            'activeEntities',
+            'terminatedEntities',
             'allDocuments',
             'policyDocuments',
             'endorsementDocuments'
@@ -330,74 +292,45 @@ class PolicyController extends Controller
 
     public function edit(InsurancePolicy $policy)
     {
-        $entities = Entity::whereIn('type', ['EMPLOYEE', 'STUDENT', 'VEHICLE', 'SHIP'])->get();
-        
-        // Load currently associated entities with pivot data
-        $policy->load(['entities' => function($query) {
-            $query->withPivot(['effective_date', 'termination_date', 'status']);
-        }]);
-        
-        // Get currently active entity IDs for the form
-        $currentEntityIds = $policy->entities()
-            ->wherePivot('status', 'ACTIVE')
-            ->pluck('entities.id')
-            ->toArray();
-        
-        return view('policies.edit', compact('policy', 'entities', 'currentEntityIds'));
+        return view('policies.edit', compact('policy'));
     }
 
     public function update(Request $request, InsurancePolicy $policy)
     {
         $request->validate([
-            'entity_ids' => 'required|array|min:1',
-            'entity_ids.*' => 'exists:entities,id',
             'policy_number' => 'required|string|regex:/^[A-Z0-9\-]{5,20}$/|unique:policies,policy_number,' . $policy->id,
             'insurance_type' => 'required|in:HEALTH,ACCIDENT,PROPERTY,VEHICLE,MARINE',
             'provider' => 'required|string|min:2|max:100|regex:/^[a-zA-Z0-9\s\-\.&]+$/',
             'start_date' => 'required|date|before:end_date',
             'end_date' => 'required|date|after:start_date',
-            'sum_insured' => 'required|numeric|min:1|max:999999999.99|regex:/^[0-9]+(?:\.[0-9]{1,2})?$/',
-            'premium_amount' => 'required|numeric|min:1|max:99999999.99|regex:/^[0-9]+(?:\.[0-9]{1,2})?$/',
+            'starting_coverage_pool' => 'required|numeric|min:0|max:999999999.99|regex:/^[0-9]+(?:\.[0-9]{1,2})$/',
+            'available_coverage_pool' => 'required|numeric|min:0|max:999999999.99|regex:/^[0-9]+(?:\.[0-9]{1,2})$/',
+            'utilized_coverage_pool' => 'required|numeric|min:0|max:999999999.99|regex:/^[0-9]+(?:\.[0-9]{1,2})$/',
             'status' => 'required|in:ACTIVE,EXPIRED,UNDER_REVIEW,CANCELLED',
             'documents' => 'nullable|array',
             'documents.*' => 'file|mimes:pdf,doc,docx,jpg,jpeg,png|max:10240',
             'document_type' => 'nullable|in:POLICY_DOCUMENT,ENDORSEMENT_DOCUMENT,FINANCIAL_DOCUMENT,OTHER',
         ], [
-            'entity_ids.required' => 'At least one entity must be selected for the policy',
             'policy_number.regex' => 'Policy number must be 5-20 characters (A-Z, 0-9, - only)',
             'policy_number.unique' => 'This policy number already exists',
             'provider.regex' => 'Provider name must contain only letters, numbers, spaces, hyphens, ampersands, and periods',
             'start_date.before' => 'Start date must be before end date',
             'end_date.after' => 'End date must be after start date',
-            'sum_insured.min' => 'Sum insured amount must be greater than 0',
-            'sum_insured.max' => 'Sum insured amount cannot exceed ₹999,999,999.99',
-            'sum_insured.regex' => 'Sum insured must be a valid amount with maximum 2 decimal places',
-            'premium_amount.min' => 'Premium amount must be greater than 0',
-            'premium_amount.max' => 'Premium amount cannot exceed ₹99,999,999.99',
-            'premium_amount.regex' => 'Premium amount must be a valid amount with maximum 2 decimal places',
+            'starting_coverage_pool.min' => 'Starting coverage pool amount must be greater than or equal to 0',
+            'starting_coverage_pool.max' => 'Starting coverage pool amount cannot exceed ₹999,999,999.99',
+            'starting_coverage_pool.regex' => 'Starting coverage pool must be a valid amount with maximum 2 decimal places',
+            'available_coverage_pool.min' => 'Available coverage pool amount must be greater than or equal to 0',
+            'available_coverage_pool.max' => 'Available coverage pool amount cannot exceed ₹999,999,999.99',
+            'available_coverage_pool.regex' => 'Available coverage pool must be a valid amount with maximum 2 decimal places',
+            'utilized_coverage_pool.min' => 'Utilized coverage pool amount must be greater than or equal to 0',
+            'utilized_coverage_pool.max' => 'Utilized coverage pool amount cannot exceed ₹999,999,999.99',
+            'utilized_coverage_pool.regex' => 'Utilized coverage pool must be a valid amount with maximum 2 decimal places',
         ]);
 
         // Store original values for audit log
-        $originalValues = $policy->only(['policy_number', 'insurance_type', 'provider', 'start_date', 'end_date', 'sum_insured', 'premium_amount', 'status']);
+        $originalValues = $policy->only(['policy_number', 'insurance_type', 'provider', 'start_date', 'end_date', 'starting_coverage_pool', 'available_coverage_pool', 'utilized_coverage_pool', 'status']);
 
-        // Get current active entity IDs
-        $currentEntityIds = $policy->entities()
-            ->wherePivot('status', 'ACTIVE')
-            ->pluck('entities.id')
-            ->toArray();
-
-        // Ensure no duplicate entity_ids in the request
-        $request->merge([
-            'entity_ids' => array_unique($request->entity_ids)
-        ]);
-
-        // Determine changes in entities
-        $newEntityIds = array_unique($request->entity_ids); // Additional safety
-        $entitiesToAdd = array_diff($newEntityIds, $currentEntityIds);
-        $entitiesToRemove = array_diff($currentEntityIds, $newEntityIds);
-        $entitiesToKeep = array_intersect($newEntityIds, $currentEntityIds);
-
-        DB::transaction(function () use ($request, $policy, $originalValues, $entitiesToAdd, $entitiesToRemove, $entitiesToKeep, $newEntityIds) {
+        DB::transaction(function () use ($request, $policy, $originalValues) {
             // Update policy basic information
             $policy->update($request->only([
                 'policy_number',
@@ -405,8 +338,9 @@ class PolicyController extends Controller
                 'provider',
                 'start_date',
                 'end_date',
-                'sum_insured',
-                'premium_amount',
+                'starting_coverage_pool',
+                'available_coverage_pool',
+                'utilized_coverage_pool',
                 'status',
             ]));
 
@@ -418,90 +352,11 @@ class PolicyController extends Controller
                 'policy_id' => $policy->id,
                 'metadata' => [
                     'policy_number' => $policy->policy_number,
-                    'changes' => $request->only(['policy_number', 'insurance_type', 'provider', 'start_date', 'end_date', 'sum_insured', 'premium_amount', 'status']),
+                    'changes' => $request->only(['policy_number', 'insurance_type', 'provider', 'start_date', 'end_date', 'starting_coverage_pool', 'available_coverage_pool', 'utilized_coverage_pool', 'status']),
                     'original_values' => $originalValues,
-                    'entities_added' => count($entitiesToAdd),
-                    'entities_removed' => count($entitiesToRemove),
-                    'entities_kept' => count($entitiesToKeep),
                 ],
                 'performed_by' => Auth::id(),
             ]);
-
-            $effectiveDate = now()->toDateString();
-
-            // Handle entities to add
-            foreach ($entitiesToAdd as $entityId) {
-                $entity = Entity::find($entityId);
-                
-                // Attach entity to policy
-                $policy->entities()->attach($entityId, [
-                    'effective_date' => $effectiveDate,
-                    'status' => 'ACTIVE'
-                ]);
-
-                // Create endorsement for adding entity
-                $endorsement = PolicyEndorsement::create([
-                    'policy_id' => $policy->id,
-                    'endorsement_number' => 'END-' . $policy->policy_number . '-ADD-' . $entityId . '-' . time(),
-                    'description' => 'Added ' . $entity->description . ' to group policy during policy update',
-                    'effective_date' => $effectiveDate,
-                    'created_by' => Auth::id(),
-                ]);
-
-                // Create audit log for entity addition
-                AuditLog::create([
-                    'action' => 'ADD_ENTITY',
-                    'entity_type' => $entity->type,
-                    'entity_id' => $entityId,
-                    'policy_id' => $policy->id,
-                    'endorsement_id' => $endorsement->id,
-                    'metadata' => [
-                        'policy_number' => $policy->policy_number,
-                        'entity_description' => $entity->description,
-                        'action' => 'ADD_ENTITY_DURING_UPDATE',
-                        'effective_date' => $effectiveDate,
-                        'endorsement_number' => $endorsement->endorsement_number,
-                    ],
-                    'performed_by' => Auth::id(),
-                ]);
-            }
-
-            // Handle entities to remove
-            foreach ($entitiesToRemove as $entityId) {
-                $entity = Entity::find($entityId);
-                
-                // Update the pivot table to mark as terminated
-                $policy->entities()->updateExistingPivot($entityId, [
-                    'termination_date' => $effectiveDate,
-                    'status' => 'TERMINATED'
-                ]);
-
-                // Create endorsement for removing entity
-                $endorsement = PolicyEndorsement::create([
-                    'policy_id' => $policy->id,
-                    'endorsement_number' => 'END-' . $policy->policy_number . '-REM-' . $entityId . '-' . time(),
-                    'description' => 'Removed ' . $entity->description . ' from group policy during policy update',
-                    'effective_date' => $effectiveDate,
-                    'created_by' => Auth::id(),
-                ]);
-
-                // Create audit log for entity removal
-                AuditLog::create([
-                    'action' => 'REMOVE_ENTITY',
-                    'entity_type' => $entity->type,
-                    'entity_id' => $entityId,
-                    'policy_id' => $policy->id,
-                    'endorsement_id' => $endorsement->id,
-                    'metadata' => [
-                        'policy_number' => $policy->policy_number,
-                        'entity_description' => $entity->description,
-                        'action' => 'REMOVE_ENTITY_DURING_UPDATE',
-                        'termination_date' => $effectiveDate,
-                        'endorsement_number' => $endorsement->endorsement_number,
-                    ],
-                    'performed_by' => Auth::id(),
-                ]);
-            }
 
             // Handle document uploads
             if ($request->hasFile('documents')) {
@@ -531,28 +386,12 @@ class PolicyController extends Controller
                 [
                     'policy_id' => $policy->id,
                     'original_values' => $originalValues,
-                    'changes' => $request->only(['policy_number', 'insurance_type', 'provider', 'start_date', 'end_date', 'sum_insured', 'premium_amount', 'status']),
-                    'entities_added' => count($entitiesToAdd),
-                    'entities_removed' => count($entitiesToRemove),
-                    'entities_kept' => count($entitiesToKeep),
+                    'changes' => $request->only(['policy_number', 'insurance_type', 'provider', 'start_date', 'end_date', 'starting_coverage_pool', 'available_coverage_pool', 'utilized_coverage_pool', 'status']),
                 ]
             );
         });
 
-        // Prepare success message with entity change details
-        $message = 'Policy updated successfully';
-        $changes = [];
-        if (count($entitiesToAdd) > 0) {
-            $changes[] = 'added ' . count($entitiesToAdd) . ' entity(ies)';
-        }
-        if (count($entitiesToRemove) > 0) {
-            $changes[] = 'removed ' . count($entitiesToRemove) . ' entity(ies)';
-        }
-        if (!empty($changes)) {
-            $message .= ' and ' . implode(' and ', $changes);
-        }
-
-        return redirect()->route('policies.index')->with('success', $message);
+        return redirect()->route('policies.index')->with('success', 'Policy updated successfully');
     }
 
     public function destroy(InsurancePolicy $policy)
@@ -602,7 +441,7 @@ class PolicyController extends Controller
 
         $originalStatus = $policy->status;
         $newStatus = $request->status;
-        
+
         $policy->update(['status' => $newStatus]);
 
         // Create audit log for status update
