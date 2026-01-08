@@ -14,6 +14,7 @@ class InsurancePolicy extends Model
     protected $table = 'policies';
 
     protected $fillable = [
+        'company_id',
         'policy_number',
         'insurance_type',
         'provider',
@@ -33,6 +34,11 @@ class InsurancePolicy extends Model
         'available_coverage_pool' => 'decimal:2',
         'utilized_coverage_pool' => 'decimal:2',
     ];
+
+    public function company(): BelongsTo
+    {
+        return $this->belongsTo(Company::class, 'company_id', 'id');
+    }
 
     public function entities(): BelongsToMany
     {
