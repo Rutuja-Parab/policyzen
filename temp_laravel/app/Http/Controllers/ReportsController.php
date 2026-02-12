@@ -10,7 +10,7 @@ use App\Models\Student;
 use App\Models\Vessel;
 use App\Models\Vehicle;
 use App\Models\Company;
-use App\Models\Course;
+use App\Models\StudentPolicyPremium;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 
@@ -34,13 +34,13 @@ class ReportsController extends Controller
         $totalPolicies = InsurancePolicy::count();
         $activePolicies = InsurancePolicy::where('status', 'ACTIVE')->count();
         $expiredPolicies = InsurancePolicy::where('status', 'EXPIRED')->count();
-        
-        // Premium Statistics
-        $totalPremium = InsurancePolicy::sum('premium_amount');
-        $averagePremium = InsurancePolicy::avg('premium_amount') ?: 0;
-        $monthlyRevenue = InsurancePolicy::whereMonth('created_at', Carbon::now()->month)
+
+        // Premium Statistics - Get from student_policy_premiums table
+        $totalPremium = StudentPolicyPremium::sum('final_premium');
+        $averagePremium = StudentPolicyPremium::avg('final_premium') ?: 0;
+        $monthlyRevenue = StudentPolicyPremium::whereMonth('created_at', Carbon::now()->month)
             ->whereYear('created_at', Carbon::now()->year)
-            ->sum('premium_amount');
+            ->sum('final_premium');
 
         // Entity Statistics
         $totalEntities = Entity::count();
@@ -59,29 +59,31 @@ class ReportsController extends Controller
         $totalCompanies = Company::count();
         $activeCompanies = Company::where('status', 'ACTIVE')->count();
 
-        // Premium by Insurance Type
+        // Premium by Insurance Type - Get from policies table
         $premiumByType = InsurancePolicy::select('insurance_type')
-            ->selectRaw('SUM(premium_amount) as total_premium')
+            ->selectRaw('COUNT(*) as count')
             ->groupBy('insurance_type')
-            ->get();
+            ->get()
+            ->toArray();
 
         // Policy Status Distribution
         $policyStatusDistribution = InsurancePolicy::select('status')
             ->selectRaw('COUNT(*) as count')
             ->groupBy('status')
-            ->get();
+            ->get()
+            ->toArray();
 
-        // Monthly Premium Trends (Last 6 months)
+        // Monthly Trends (Last 6 months) - Endorsements count
         $monthlyTrends = [];
         for ($i = 5; $i >= 0; $i--) {
             $month = Carbon::now()->subMonths($i);
-            $premium = InsurancePolicy::whereMonth('created_at', $month->month)
+            $count = PolicyEndorsement::whereMonth('created_at', $month->month)
                 ->whereYear('created_at', $month->year)
-                ->sum('premium_amount');
-            
+                ->count();
+
             $monthlyTrends[] = [
                 'month' => $month->format('M Y'),
-                'premium' => $premium
+                'premium' => $count
             ];
         }
 
@@ -134,7 +136,7 @@ class ReportsController extends Controller
     public function export(Request $request, $format)
     {
         $stats = $this->getStatistics();
-        
+
         switch ($format) {
             case 'pdf':
                 return $this->exportToPdf($stats);
@@ -187,16 +189,16 @@ class ReportsController extends Controller
         switch ($type) {
             case 'policy-status':
                 return response()->json($stats['charts']['policyStatusDistribution']);
-            
+
             case 'premium-by-type':
                 return response()->json($stats['charts']['premiumByType']);
-            
+
             case 'monthly-trends':
                 return response()->json($stats['charts']['monthlyTrends']);
-            
+
             case 'entity-distribution':
                 return response()->json($stats['charts']['entityDistribution']);
-            
+
             default:
                 return response()->json(['error' => 'Invalid chart type'], 400);
         }

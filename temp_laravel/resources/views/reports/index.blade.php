@@ -73,7 +73,25 @@
     </div>
 
     <!-- Charts Section -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <!-- Entity Type Distribution -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Entity Type Distribution</h3>
+            <div class="h-64">
+                <canvas id="entityTypeChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Monthly Trends -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Monthly Endorsement Trends</h3>
+            <div class="h-64">
+                <canvas id="monthlyTrendsChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         <!-- Policy Status Distribution -->
         <div class="bg-white rounded-lg shadow p-6">
             <h3 class="text-lg font-medium text-gray-900 mb-4">Policy Status Distribution</h3>
@@ -82,11 +100,11 @@
             </div>
         </div>
 
-        <!-- Premium by Insurance Type -->
+        <!-- Companies by Status -->
         <div class="bg-white rounded-lg shadow p-6">
-            <h3 class="text-lg font-medium text-gray-900 mb-4">Premium by Insurance Type</h3>
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Companies by Status</h3>
             <div class="h-64">
-                <canvas id="premiumTypeChart"></canvas>
+                <canvas id="companyStatusChart"></canvas>
             </div>
         </div>
     </div>
@@ -115,73 +133,156 @@
     });
 
     function initializeCharts() {
-        // Policy Status Chart
-        const policyStatusCtx = document.getElementById('policyStatusChart').getContext('2d');
-        const policyStatusData = @json($stats['charts']['policyStatusDistribution']);
+        // Entity Type Distribution Chart
+        const entityTypeCtx = document.getElementById('entityTypeChart');
+        if (entityTypeCtx) {
+            const entityData = @json($stats['charts']['entityDistribution']);
 
-        new Chart(policyStatusCtx, {
-            type: 'doughnut',
-            data: {
-                labels: policyStatusData.map(item => item.status),
-                datasets: [{
-                    data: policyStatusData.map(item => item.count),
-                    backgroundColor: [
-                        '#f06e11', // Orange for Active
-                        '#04315b', // Dark Blue for Expired
-                        '#2b8bd0', // Light Blue for Pending
-                        '#6B7280' // Gray for others
-                    ],
-                    borderWidth: 2,
-                    borderColor: '#ffffff'
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                    }
-                }
-            }
-        });
+            const entityLabels = Object.keys(entityData).filter(key => entityData[key] > 0);
+            const entityValues = entityLabels.map(key => entityData[key] || 0);
 
-        // Premium by Type Chart
-        const premiumTypeCtx = document.getElementById('premiumTypeChart').getContext('2d');
-        const premiumTypeData = @json($stats['charts']['premiumByType']);
-
-        new Chart(premiumTypeCtx, {
-            type: 'bar',
-            data: {
-                labels: premiumTypeData.map(item => item.insurance_type || 'Unknown'),
-                datasets: [{
-                    label: 'Premium Amount',
-                    data: premiumTypeData.map(item => parseFloat(item.total_premium) || 0),
-                    backgroundColor: '#f06e11',
-                    borderColor: '#f28e1f',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            callback: function(value) {
-                                return '$' + value.toLocaleString();
-                            }
+            new Chart(entityTypeCtx.getContext('2d'), {
+                type: 'pie',
+                data: {
+                    labels: entityLabels.map(label => label.charAt(0).toUpperCase() + label.slice(1)),
+                    datasets: [{
+                        data: entityValues,
+                        backgroundColor: [
+                            '#3b82f6', // Blue for employees
+                            '#10b981', // Green for students
+                            '#f59e0b', // Yellow for vessels
+                            '#ef4444', // Red for vehicles
+                            '#8b5cf6', // Purple
+                            '#ec4899', // Pink
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
                         }
                     }
+                }
+            });
+        }
+
+        // Monthly Trends Chart
+        const monthlyTrendsCtx = document.getElementById('monthlyTrendsChart');
+        if (monthlyTrendsCtx) {
+            const trendsData = @json($stats['charts']['monthlyTrends']);
+
+            const trendLabels = trendsData.map(item => item.month);
+            const trendValues = trendsData.map(item => parseFloat(item.premium) || 0);
+
+            new Chart(monthlyTrendsCtx.getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: trendLabels,
+                    datasets: [{
+                        label: 'Premium',
+                        data: trendValues,
+                        borderColor: '#f06e11',
+                        backgroundColor: 'rgba(240, 110, 17, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    }]
                 },
-                plugins: {
-                    legend: {
-                        display: false
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
                     }
                 }
-            }
-        });
+            });
+        }
+
+        // Policy Status Chart
+        const policyStatusCtx = document.getElementById('policyStatusChart');
+        if (policyStatusCtx) {
+            const policyStatusData = @json($stats['charts']['policyStatusDistribution']);
+
+            const policyStatusLabels = policyStatusData.length > 0 ?
+                policyStatusData.map(item => item.status) :
+                ['No Data'];
+            const policyStatusValues = policyStatusData.length > 0 ?
+                policyStatusData.map(item => item.count) :
+                [1];
+
+            new Chart(policyStatusCtx.getContext('2d'), {
+                type: 'doughnut',
+                data: {
+                    labels: policyStatusLabels,
+                    datasets: [{
+                        data: policyStatusValues,
+                        backgroundColor: [
+                            '#f06e11', // Orange for Active
+                            '#04315b', // Dark Blue for Expired
+                            '#2b8bd0', // Light Blue for Pending
+                            '#6B7280' // Gray for others
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                        }
+                    }
+                }
+            });
+        }
+
+        // Company Status Chart
+        const companyStatusCtx = document.getElementById('companyStatusChart');
+        if (companyStatusCtx) {
+            const companyData = @json($stats['companies']);
+
+            new Chart(companyStatusCtx.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ['Total Companies', 'Active Companies'],
+                    datasets: [{
+                        label: 'Count',
+                        data: [companyData.total, companyData.active],
+                        backgroundColor: ['#3b82f6', '#10b981'],
+                        borderColor: ['#2563eb', '#059669'],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        }
     }
 
     function exportReport(format) {
