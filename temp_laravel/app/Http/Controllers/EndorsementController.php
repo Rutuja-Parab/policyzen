@@ -7,7 +7,10 @@ use App\Models\InsurancePolicy;
 use App\Models\Entity;
 use App\Models\Document;
 use App\Models\AuditLog;
+use App\Models\Student;
+use App\Models\StudentPolicyPremium;
 use App\Services\NotificationService;
+use App\Services\StudentPolicyService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -26,16 +29,16 @@ class EndorsementController extends Controller
         // Search functionality
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('endorsement_number', 'like', "%{$search}%")
-                  ->orWhere('description', 'like', "%{$search}%")
-                  ->orWhereHas('policy', function($policyQuery) use ($search) {
-                      $policyQuery->where('policy_number', 'like', "%{$search}%")
-                                ->orWhere('provider', 'like', "%{$search}%");
-                  })
-                  ->orWhereHas('creator', function($creatorQuery) use ($search) {
-                      $creatorQuery->where('name', 'like', "%{$search}%");
-                  });
+                    ->orWhere('description', 'like', "%{$search}%")
+                    ->orWhereHas('policy', function ($policyQuery) use ($search) {
+                        $policyQuery->where('policy_number', 'like', "%{$search}%")
+                            ->orWhere('provider', 'like', "%{$search}%");
+                    })
+                    ->orWhereHas('creator', function ($creatorQuery) use ($search) {
+                        $creatorQuery->where('name', 'like', "%{$search}%");
+                    });
             });
         }
 
@@ -61,7 +64,7 @@ class EndorsementController extends Controller
         // Sorting
         $sortBy = $request->get('sort_by', 'created_at');
         $sortOrder = $request->get('sort_order', 'desc');
-        
+
         $allowedSorts = ['endorsement_number', 'effective_date', 'created_at', 'updated_at'];
         if (in_array($sortBy, $allowedSorts)) {
             $query->orderBy($sortBy, $sortOrder);
@@ -73,19 +76,23 @@ class EndorsementController extends Controller
         if ($request->get('export') === 'csv') {
             $endorsements = $query->get();
             $filename = 'endorsements_' . date('Y-m-d_H-i-s') . '.csv';
-            
+
             $headers = [
                 'Content-Type' => 'text/csv',
                 'Content-Disposition' => 'attachment; filename="' . $filename . '"',
             ];
 
-            $callback = function() use ($endorsements) {
+            $callback = function () use ($endorsements) {
                 $file = fopen('php://output', 'w');
-                
+
                 // CSV headers
                 fputcsv($file, [
-                    'Endorsement Number', 'Policy Number', 'Description', 
-                    'Effective Date', 'Created By', 'Created At'
+                    'Endorsement Number',
+                    'Policy Number',
+                    'Description',
+                    'Effective Date',
+                    'Created By',
+                    'Created At'
                 ]);
 
                 foreach ($endorsements as $endorsement) {
@@ -98,7 +105,7 @@ class EndorsementController extends Controller
                         $endorsement->created_at->format('Y-m-d H:i:s')
                     ]);
                 }
-                
+
                 fclose($file);
             };
 
@@ -108,12 +115,12 @@ class EndorsementController extends Controller
         // Pagination with configurable per_page
         $perPage = $request->get('per_page', 20);
         $perPage = in_array($perPage, [10, 20, 50, 100]) ? $perPage : 20;
-        
+
         $endorsements = $query->paginate($perPage)->appends($request->query());
 
         // Get filter options
         $policies = InsurancePolicy::select('id', 'policy_number')->orderBy('policy_number')->get();
-        
+
         return view('endorsements.index', compact('endorsements', 'policies'));
     }
 
@@ -153,17 +160,17 @@ class EndorsementController extends Controller
 
         DB::transaction(function () use ($request) {
             // Get current policy entities for comparison
-            $policy = InsurancePolicy::with(['entities' => function($query) {
+            $policy = InsurancePolicy::with(['entities' => function ($query) {
                 $query->wherePivot('status', 'ACTIVE');
             }])->find($request->policy_id);
-            
+
             $currentPolicyEntityIds = $policy->entities->pluck('id')->toArray();
             $selectedEntityIds = $request->has('entity_ids') ? array_unique($request->entity_ids) : [];
-            
+
             // Determine entities to add vs terminate
             $entitiesToAdd = array_diff($selectedEntityIds, $currentPolicyEntityIds);
             $entitiesToTerminate = array_diff($currentPolicyEntityIds, $selectedEntityIds);
-            
+
             $endorsement = PolicyEndorsement::create([
                 'id' => Str::uuid(),
                 'policy_id' => $request->policy_id,
@@ -191,19 +198,24 @@ class EndorsementController extends Controller
                 'performed_by' => Auth::id(),
             ]);
 
-            // Attach entities being added to endorsement
+            // Attach entities being added to endorsement and calculate premiums
             if (count($entitiesToAdd) > 0) {
                 $endorsement->entities()->attach($entitiesToAdd);
-                
+
                 // Add new entities to policy
                 $policy->entities()->attach($entitiesToAdd, [
                     'effective_date' => $request->effective_date,
                     'status' => 'ACTIVE'
                 ]);
 
-                // Create audit logs for each entity added
+                // Calculate premiums for STUDENT entities being added
+                $studentPolicyService = app(StudentPolicyService::class);
+                $totalPremium = 0;
+
                 foreach ($entitiesToAdd as $entityId) {
                     $entity = Entity::find($entityId);
+
+                    // Create audit log for entity addition
                     AuditLog::create([
                         'action' => 'ADD_ENTITY',
                         'entity_type' => $entity->type,
@@ -219,19 +231,145 @@ class EndorsementController extends Controller
                         ],
                         'performed_by' => Auth::id(),
                     ]);
+
+                    // Calculate premium for STUDENT entities
+                    if ($entity && $entity->type === 'STUDENT') {
+                        $student = Student::find($entity->entity_id);
+                        if ($student) {
+                            $sumAssured = $student->sum_insured ?? 1000000; // Default ₹10,00,000
+                            $dateOfJoining = $request->effective_date;
+                            $dateOfExit = \Carbon\Carbon::parse($dateOfJoining)->addYear()->format('Y-m-d');
+
+                            $premiumData = $studentPolicyService->calculateStudentPremium(
+                                $sumAssured,
+                                $dateOfJoining,
+                                $dateOfExit
+                            );
+
+                            $finalPremium = $premiumData['final_premium'];
+                            $totalPremium += $finalPremium;
+
+                            // Save premium record
+                            StudentPolicyPremium::create([
+                                'student_id' => $student->id,
+                                'policy_id' => $policy->id,
+                                'endorsement_id' => $endorsement->id,
+                                'sum_insured' => $premiumData['sum_insured'],
+                                'rate' => $premiumData['rate'],
+                                'annual_premium' => $premiumData['annual_premium'],
+                                'date_of_joining' => $premiumData['date_of_joining'],
+                                'date_of_exit' => $premiumData['date_of_exit'],
+                                'pro_rata_days' => $premiumData['pro_rata_days'],
+                                'prorata_premium' => $premiumData['prorata_premium'],
+                                'gst_rate' => $premiumData['gst_rate'],
+                                'gst_amount' => $premiumData['gst_amount'],
+                                'final_premium' => $finalPremium,
+                                'premium_type' => 'ADDITION',
+                            ]);
+
+                            // Audit log for premium calculation
+                            AuditLog::create([
+                                'action' => 'CALCULATE_PREMIUM',
+                                'entity_type' => 'Student',
+                                'entity_id' => $student->id,
+                                'policy_id' => $policy->id,
+                                'endorsement_id' => $endorsement->id,
+                                'amount' => $finalPremium,
+                                'transaction_type' => 'DEBIT',
+                                'metadata' => [
+                                    'student_name' => $student->name,
+                                    'endorsement_number' => $endorsement->endorsement_number,
+                                    'premium_breakdown' => $premiumData,
+                                ],
+                                'performed_by' => Auth::id(),
+                            ]);
+                        }
+                    }
+                }
+
+                // Update policy coverage pool if premiums calculated
+                if ($totalPremium > 0) {
+                    $policy->available_coverage_pool = $policy->available_coverage_pool - $totalPremium;
+                    $policy->utilized_coverage_pool = $policy->utilized_coverage_pool + $totalPremium;
+                    $policy->save();
                 }
             }
 
-            // Handle entity terminations
+            // Handle entity terminations and calculate refunds
             if (count($entitiesToTerminate) > 0) {
+                $studentPolicyService = app(StudentPolicyService::class);
+                $totalRefund = 0;
+
                 foreach ($entitiesToTerminate as $entityId) {
                     $entity = Entity::find($entityId);
-                    
+
                     // Update the pivot table to mark as terminated
                     $policy->entities()->updateExistingPivot($entityId, [
                         'termination_date' => $request->effective_date,
                         'status' => 'TERMINATED'
                     ]);
+
+                    // Calculate refund for STUDENT entities being removed
+                    if ($entity && $entity->type === 'STUDENT') {
+                        $student = Student::find($entity->entity_id);
+                        if ($student) {
+                            $sumAssured = $student->sum_insured ?? 1000000;
+
+                            // Get the actual date when the student was attached to the policy
+                            $pivotData = DB::table('policy_entities')
+                                ->where('policy_id', $policy->id)
+                                ->where('entity_id', $entityId)
+                                ->first();
+
+                            // Use the pivot effective_date (when actually attached to policy)
+                            $dateOfJoining = $pivotData->effective_date ?? $request->effective_date;
+                            $dateOfExit = $request->effective_date;
+
+                            $refundData = $studentPolicyService->calculateStudentPremium(
+                                $sumAssured,
+                                $dateOfJoining,
+                                $dateOfExit
+                            );
+
+                            $finalRefund = $refundData['final_premium'];
+                            $totalRefund += $finalRefund;
+
+                            // Save premium record with REMOVAL type
+                            StudentPolicyPremium::create([
+                                'student_id' => $student->id,
+                                'policy_id' => $policy->id,
+                                'endorsement_id' => $endorsement->id,
+                                'sum_insured' => $refundData['sum_insured'],
+                                'rate' => $refundData['rate'],
+                                'annual_premium' => $refundData['annual_premium'],
+                                'date_of_joining' => $refundData['date_of_joining'],
+                                'date_of_exit' => $refundData['date_of_exit'],
+                                'pro_rata_days' => $refundData['pro_rata_days'],
+                                'prorata_premium' => $refundData['prorata_premium'],
+                                'gst_rate' => $refundData['gst_rate'],
+                                'gst_amount' => $refundData['gst_amount'],
+                                'final_premium' => $finalRefund,
+                                'premium_type' => 'REMOVAL',
+                            ]);
+
+                            // Audit log for refund calculation
+                            AuditLog::create([
+                                'action' => 'CALCULATE_REFUND',
+                                'entity_type' => 'Student',
+                                'entity_id' => $student->id,
+                                'policy_id' => $policy->id,
+                                'endorsement_id' => $endorsement->id,
+                                'amount' => $finalRefund,
+                                'transaction_type' => 'CREDIT',
+                                'metadata' => [
+                                    'student_name' => $student->name,
+                                    'endorsement_number' => $endorsement->endorsement_number,
+                                    'refund_breakdown' => $refundData,
+                                ],
+                                'performed_by' => Auth::id(),
+                            ]);
+                        }
+                    }
 
                     // Create audit log for entity termination
                     AuditLog::create([
@@ -249,6 +387,13 @@ class EndorsementController extends Controller
                         ],
                         'performed_by' => Auth::id(),
                     ]);
+                }
+
+                // Update policy coverage pool if refunds calculated
+                if ($totalRefund > 0) {
+                    $policy->available_coverage_pool = $policy->available_coverage_pool + $totalRefund;
+                    $policy->utilized_coverage_pool = $policy->utilized_coverage_pool - $totalRefund;
+                    $policy->save();
                 }
             }
 
@@ -272,15 +417,15 @@ class EndorsementController extends Controller
             }
 
             // Calculate counts for success message
-            $policy = InsurancePolicy::with(['entities' => function($query) {
+            $policy = InsurancePolicy::with(['entities' => function ($query) {
                 $query->wherePivot('status', 'ACTIVE');
             }])->find($request->policy_id);
-            
+
             $currentPolicyEntityIds = $policy->entities->pluck('id')->toArray();
             $selectedEntityIds = $request->has('entity_ids') ? array_unique($request->entity_ids) : [];
             $entitiesToAdd = array_diff($selectedEntityIds, $currentPolicyEntityIds);
             $entitiesToTerminate = array_diff($currentPolicyEntityIds, $selectedEntityIds);
-            
+
             $addCount = count($entitiesToAdd);
             $terminateCount = count($entitiesToTerminate);
 
@@ -302,19 +447,19 @@ class EndorsementController extends Controller
         });
 
         // Calculate counts for success message
-        $policy = InsurancePolicy::with(['entities' => function($query) {
+        $policy = InsurancePolicy::with(['entities' => function ($query) {
             $query->wherePivot('status', 'ACTIVE');
         }])->find($request->policy_id);
-        
+
         $currentPolicyEntityIds = $policy->entities->pluck('id')->toArray();
         $selectedEntityIds = $request->has('entity_ids') ? array_unique($request->entity_ids) : [];
         $entitiesToAdd = array_diff($selectedEntityIds, $currentPolicyEntityIds);
         $entitiesToTerminate = array_diff($currentPolicyEntityIds, $selectedEntityIds);
-        
+
         $addCount = count($entitiesToAdd);
         $terminateCount = count($entitiesToTerminate);
         $message = 'Endorsement created successfully';
-        
+
         if ($addCount > 0 || $terminateCount > 0) {
             $details = [];
             if ($addCount > 0) $details[] = "added {$addCount} entity(ies)";
@@ -331,21 +476,21 @@ class EndorsementController extends Controller
     private function buildEndorsementDescription($baseDescription, $entitiesToAdd, $entitiesToTerminate, $policy)
     {
         $description = $baseDescription;
-        
+
         if (count($entitiesToAdd) > 0 || count($entitiesToTerminate) > 0) {
             $description .= "\n\nEntity Changes:";
-            
+
             if (count($entitiesToAdd) > 0) {
                 $description .= "\n+ Added: " . count($entitiesToAdd) . " entity(ies)";
             }
-            
+
             if (count($entitiesToTerminate) > 0) {
                 $description .= "\n- Terminated: " . count($entitiesToTerminate) . " entity(ies)";
             }
-            
+
             $description .= "\nPolicy: {$policy->policy_number}";
         }
-        
+
         return $description;
     }
 
@@ -581,13 +726,13 @@ class EndorsementController extends Controller
     {
         // Get policy_id from route parameter, not request body
         $policyId = $request->route('policy_id');
-        
+
         if (!$policyId) {
             return response()->json(['error' => 'Policy ID is required'], 400);
         }
 
         $policy = InsurancePolicy::find($policyId);
-        
+
         if (!$policy) {
             return response()->json(['error' => 'Policy not found'], 404);
         }
@@ -603,7 +748,7 @@ class EndorsementController extends Controller
         // Debug logging
         error_log("Policy {$policy->policy_number} entities: Total attached: {$totalEntities}, Active: {$activeEntities->count()}");
 
-        $entities = $activeEntities->map(function($entity) {
+        $entities = $activeEntities->map(function ($entity) {
             return [
                 'id' => $entity->id,
                 'description' => $entity->description,
@@ -672,7 +817,10 @@ class EndorsementController extends Controller
         ]);
 
         $endorsement->update($request->only([
-            'policy_id', 'endorsement_number', 'description', 'effective_date'
+            'policy_id',
+            'endorsement_number',
+            'description',
+            'effective_date'
         ]));
 
         return response()->json($endorsement);

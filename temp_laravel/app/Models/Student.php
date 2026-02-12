@@ -47,4 +47,21 @@ class Student extends Model
     {
         return $this->hasOne(Entity::class, 'entity_id', 'id')->where('type', 'STUDENT');
     }
+
+    public function premiums()
+    {
+        return $this->hasMany(StudentPolicyPremium::class, 'student_id', 'id');
+    }
+
+    public function policies()
+    {
+        return $this->hasManyThrough(
+            InsurancePolicy::class,
+            StudentPolicyPremium::class,
+            'student_id', // Foreign key on premiums table
+            'id', // Foreign key on policies table
+            'id', // Local key on students table
+            'policy_id' // Local key on premiums table
+        );
+    }
 }

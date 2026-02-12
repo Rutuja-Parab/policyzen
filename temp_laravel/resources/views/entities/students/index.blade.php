@@ -148,8 +148,8 @@
 
         <!-- Students Table -->
         <div class="bg-white rounded-lg shadow overflow-hidden">
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
+            <div>
+                <table class="w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
                         <tr>
                             <th class="w-12 px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -210,6 +210,12 @@
                                     @endif
                                 </a>
                             </th>
+                            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Joining Date
+                            </th>
+                            <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Sum Insured
+                            </th>
                             <th
                                 class="w-20 px-2 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Actions</th>
@@ -218,35 +224,34 @@
                     <tbody class="bg-white divide-y divide-gray-200">
                         @foreach ($students as $student)
                             <tr class="hover:bg-gray-50 transition-colors duration-150">
-                                <td class="px-2 py-3 whitespace-nowrap">
+                                <td class="px-2 py-3">
                                     <input type="checkbox" name="selected_students[]" value="{{ $student->id }}"
                                         class="student-checkbox rounded border-gray-300 text-[#f06e11] shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
                                 </td>
-                                <td class="px-3 py-3 whitespace-nowrap">
+                                <td class="px-3 py-3">
                                     <div class="text-sm font-medium text-gray-900">{{ $student->student_id }}</div>
                                 </td>
-                                <td class="px-3 py-3 whitespace-nowrap">
+                                <td class="px-3 py-3">
                                     <div class="text-sm font-medium text-gray-900">{{ $student->name }}</div>
                                 </td>
-                                <td class="px-3 py-3 whitespace-nowrap">
+                                <td class="px-3 py-3">
                                     <div class="text-sm text-gray-900">{{ $student->email ?? 'N/A' }}</div>
                                     @if ($student->phone)
                                         <div class="text-xs text-gray-500">{{ $student->phone }}</div>
                                     @endif
                                 </td>
-                                <td class="px-3 py-3 whitespace-nowrap">
+                                <td class="px-3 py-3">
                                     <div class="text-sm text-gray-900">{{ $student->age ?? 'N/A' }}</div>
                                     <div class="text-xs text-gray-500">{{ $student->gender ?? 'N/A' }}</div>
                                 </td>
-                                <td class="px-3 py-3 whitespace-nowrap">
+                                <td class="px-3 py-3">
                                     <div class="text-sm text-gray-900">{{ $student->rank ?? 'N/A' }}</div>
-                                    <div class="text-xs text-gray-500 truncate max-w-24">{{ $student->course ?? 'N/A' }}
-                                    </div>
+                                    <div class="text-xs text-gray-500">{{ $student->course ?? 'N/A' }}</div>
                                 </td>
-                                <td class="px-3 py-3 whitespace-nowrap">
+                                <td class="px-3 py-3">
                                     <div class="text-sm text-gray-900">{{ $student->company->name ?? 'N/A' }}</div>
                                 </td>
-                                <td class="px-3 py-3 whitespace-nowrap">
+                                <td class="px-3 py-3">
                                     <span
                                         class="inline-flex px-2 py-1 text-xs font-semibold rounded-full 
                             @if ($student->status === 'ACTIVE') bg-green-100 text-green-800
@@ -254,7 +259,17 @@
                                         {{ $student->status }}
                                     </span>
                                 </td>
-                                <td class="px-2 py-3 whitespace-nowrap text-right text-sm font-medium">
+                                <td class="px-3 py-3">
+                                    <div class="text-sm text-gray-900">
+                                        {{ $student->date_of_joining ? $student->date_of_joining->format('d M Y') : 'N/A' }}
+                                    </div>
+                                </td>
+                                <td class="px-3 py-3">
+                                    <div class="text-sm text-gray-900">
+                                        {{ $student->sum_insured ? '₹' . number_format($student->sum_insured, 0) : 'N/A' }}
+                                    </div>
+                                </td>
+                                <td class="px-2 py-3 text-right text-sm font-medium">
                                     <div class="flex items-center justify-end space-x-1">
                                         <a href="{{ route('entities.students.show', $student) }}"
                                             class="text-[#f06e11] hover:text-blue-900 p-1 rounded" title="View Details">

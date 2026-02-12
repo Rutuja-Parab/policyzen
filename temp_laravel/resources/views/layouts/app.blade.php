@@ -13,7 +13,7 @@
     @stack('styles')
 </head>
 
-<body class="bg-gray-50">
+<body class="bg-gray-50 overflow-x-hidden">
     <div class="min-h-screen flex">
         <!-- Sidebar -->
         <div class="w-60  shadow-lg fixed h-full overflow-y-scroll">
@@ -133,7 +133,7 @@
         </div>
 
         <!-- Main Content -->
-        <div class="flex-1 ml-64">
+        <div class="flex-1 ml-64 overflow-hidden">
             <!-- Header -->
             <header class="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
                 <div class="flex items-center justify-between">
@@ -168,7 +168,7 @@
             </header>
 
             <!-- Page Content -->
-            <main class="p-6">
+            <main class="p-6 overflow-hidden">
                 @yield('content')
             </main>
         </div>

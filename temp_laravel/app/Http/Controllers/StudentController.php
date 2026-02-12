@@ -195,10 +195,55 @@ class StudentController extends Controller
     }
 
     // Web view methods
-    public function webIndex()
+    public function webIndex(Request $request)
     {
-        $students = Student::orderBy('created_at', 'desc')->get();
-        return view('entities.students.index', compact('students'));
+        $query = Student::query();
+
+        if ($request->has('company_id')) {
+            $query->where('company_id', $request->company_id);
+        }
+        if ($request->has('status')) {
+            $query->where('status', $request->status);
+        }
+        if ($request->has('gender')) {
+            $query->where('gender', $request->gender);
+        }
+        if ($request->has('course_id')) {
+            $query->where('course', function ($q) use ($request) {
+                $course = Course::find($request->course_id);
+                if ($course) {
+                    $q->where('course', $course->course_name);
+                }
+            });
+        }
+        if ($request->has('age_min')) {
+            $query->where('age', '>=', $request->age_min);
+        }
+        if ($request->has('age_max')) {
+            $query->where('age', '<=', $request->age_max);
+        }
+        if ($request->has('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('student_id', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%")
+                    ->orWhere('rank', 'like', "%{$search}%");
+            });
+        }
+
+        // Sorting
+        $sortBy = $request->get('sort_by', 'created_at');
+        $sortOrder = $request->get('sort_order', 'desc');
+        $query->orderBy($sortBy, $sortOrder);
+
+        $perPage = $request->get('per_page', 20);
+        $students = $query->paginate($perPage);
+
+        $companies = Company::orderBy('name')->get();
+        $courses = Course::orderBy('course_name')->get();
+
+        return view('entities.students.index', compact('students', 'companies', 'courses'));
     }
 
     public function webCreate()
@@ -277,6 +322,7 @@ class StudentController extends Controller
 
     public function webShow(Student $student)
     {
+        $student->load(['premiums.policy', 'entity']);
         return view('entities.students.show', compact('student'));
     }
 
@@ -384,6 +430,82 @@ class StudentController extends Controller
     }
 
     /**
+     * Download sample CSV template.
+     */
+    public function downloadTemplate()
+    {
+        $headers = [
+            'sr.no',
+            'student_id',
+            'name',
+            'email',
+            'phone',
+            'dob',
+            'age',
+            'gender',
+            'rank',
+            'batch',
+            'date_of_joining',
+            'sum_insured',
+            'company_name',
+        ];
+
+        $sampleData = [
+            [
+                1,
+                'STU001',
+                'John Doe',
+                'john.doe@example.com',
+                '+919876543210',
+                '2000-01-15',
+                24,
+                'Male',
+                '1',
+                '2024-2025',
+                '2024-01-01',
+                '1000000',
+                'Tech Solutions Inc',
+            ],
+            [
+                2,
+                'STU002',
+                'Jane Smith',
+                'jane.smith@example.com',
+                '+919876543211',
+                '2001-05-20',
+                23,
+                'Female',
+                '2',
+                '2024-2025',
+                '2024-01-01',
+                '1000000',
+                'Tech Solutions Inc',
+            ],
+        ];
+
+        $filename = 'student_import_template_' . date('Y-m-d') . '.csv';
+
+        $file = fopen('php://temp', 'r+');
+
+        // Write headers
+        fputcsv($file, $headers);
+
+        // Write sample data
+        foreach ($sampleData as $row) {
+            fputcsv($file, $row);
+        }
+
+        rewind($file);
+
+        $content = stream_get_contents($file);
+        fclose($file);
+
+        return response($content, 200)
+            ->header('Content-Type', 'text/csv')
+            ->header('Content-Disposition', "attachment; filename=\"{$filename}\"");
+    }
+
+    /**
      * Process CSV import.
      */
     public function webImportProcess(Request $request)
@@ -436,11 +558,10 @@ class StudentController extends Controller
                 'batch' => 'batch',
                 'date_of_joining' => 'date_of_joining',
                 'joining_date' => 'date_of_joining',
-                'date_of_exit' => 'date_of_exiting',
-                'date_of_exiting' => 'date_of_exiting',
-                'exit_date' => 'date_of_exiting',
+                'doj' => 'date_of_joining',
                 'sum_insured' => 'sum_insured',
                 'suminsured' => 'sum_insured',
+                'sum_ins' => 'sum_insured',
                 'insurance_amount' => 'sum_insured',
             ];
 
@@ -472,6 +593,9 @@ class StudentController extends Controller
                     $age = isset($columnIndices['age']) ? trim($row[$columnIndices['age']]) : null;
                     $gender = isset($columnIndices['gender']) ? trim($row[$columnIndices['gender']]) : null;
                     $rank = isset($columnIndices['rank']) ? trim($row[$columnIndices['rank']]) : null;
+                    $batch = isset($columnIndices['batch']) ? trim($row[$columnIndices['batch']]) : null;
+                    $dateOfJoining = isset($columnIndices['date_of_joining']) ? trim($row[$columnIndices['date_of_joining']]) : null;
+                    $sumInsured = isset($columnIndices['sum_insured']) ? trim($row[$columnIndices['sum_insured']]) : null;
                     $csvCompanyName = isset($columnIndices['company_name']) ? trim($row[$columnIndices['company_name']]) : null;
 
                     // Validate required fields
@@ -526,6 +650,24 @@ class StudentController extends Controller
                         $age = \Carbon\Carbon::parse($parsedDob)->age;
                     }
 
+                    // Parse date of joining
+                    $parsedDateOfJoining = null;
+                    if ($dateOfJoining) {
+                        try {
+                            $parsedDateOfJoining = \Carbon\Carbon::parse($dateOfJoining)->format('Y-m-d');
+                        } catch (\Exception $e) {
+                            $formats = ['d/m/Y', 'm/d/Y', 'Y-m-d', 'd-m-Y', 'Y/m/d'];
+                            foreach ($formats as $format) {
+                                try {
+                                    $parsedDateOfJoining = \Carbon\Carbon::createFromFormat($format, $dateOfJoining)->format('Y-m-d');
+                                    break;
+                                } catch (\Exception $e2) {
+                                    continue;
+                                }
+                            }
+                        }
+                    }
+
                     // Create student
                     $student = Student::create([
                         'company_id' => $finalCompanyId,
@@ -537,6 +679,9 @@ class StudentController extends Controller
                         'age' => $age ? (int)$age : null,
                         'gender' => $gender ?: null,
                         'rank' => $rank ?: null,
+                        'batch' => $batch ?: null,
+                        'date_of_joining' => $parsedDateOfJoining,
+                        'sum_insured' => $sumInsured ? (float)$sumInsured : null,
                         'status' => 'ACTIVE',
                         'course' => $courseName,
                     ]);

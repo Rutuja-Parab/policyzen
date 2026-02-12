@@ -34,26 +34,25 @@ class StudentPolicyController extends Controller
     }
 
     /**
-     * Add students to policy
+     * Add students to policy with automatic premium calculation
      */
     public function addStudents(Request $request, InsurancePolicy $policy)
     {
         $validated = $request->validate([
             'student_ids' => 'required|array|min:1',
             'student_ids.*' => 'exists:students,id',
-            'premium_per_student' => 'required|numeric|min:0',
+            'premium_per_student' => 'nullable|numeric|min:0',
         ]);
 
-        $result = $this->studentPolicyService->addStudentsToPolicy(
+        $result = $this->studentPolicyService->addStudentsWithCalculatedPremium(
             $policy,
             $validated['student_ids'],
-            $validated['premium_per_student'],
             Auth::id()
         );
 
         if (count($result['success']) > 0) {
             $message = count($result['success']) . ' student(s) added successfully. Total debited: ₹' . number_format($result['total_debited'], 2);
-            
+
             if (count($result['failed']) > 0) {
                 $message .= '. ' . count($result['failed']) . ' student(s) failed to add.';
             }
@@ -69,14 +68,13 @@ class StudentPolicyController extends Controller
     }
 
     /**
-     * Remove students from policy
+     * Remove students from policy with automatic refund calculation
      */
     public function removeStudents(Request $request, InsurancePolicy $policy)
     {
         $validated = $request->validate([
             'student_ids' => 'required|array|min:1',
             'student_ids.*' => 'exists:students,id',
-            'refund_per_student' => 'required|numeric|min:0',
             'removal_reason' => 'required|string|max:255',
             'endorsement_documents' => 'nullable|array',
             'endorsement_documents.*' => 'file|mimes:pdf,doc,docx,jpg,jpeg,png|max:10240',
@@ -84,13 +82,11 @@ class StudentPolicyController extends Controller
         ], [
             'removal_reason.required' => 'Please provide a reason for student removal',
             'student_ids.required' => 'Please select at least one student to remove',
-            'refund_per_student.required' => 'Please enter refund amount per student',
         ]);
 
-        $result = $this->studentPolicyService->removeStudentsFromPolicy(
+        $result = $this->studentPolicyService->removeStudentsWithCalculatedRefund(
             $policy,
             $validated['student_ids'],
-            $validated['refund_per_student'],
             Auth::id(),
             $validated['removal_reason'],
             $request->file('endorsement_documents'),
@@ -99,7 +95,7 @@ class StudentPolicyController extends Controller
 
         if (count($result['success']) > 0) {
             $message = count($result['success']) . ' student(s) removed successfully. Total credited: ₹' . number_format($result['total_credited'], 2);
-            
+
             if (count($result['failed']) > 0) {
                 $message .= '. ' . count($result['failed']) . ' student(s) failed to remove.';
             }

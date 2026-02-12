@@ -100,6 +100,7 @@ Route::middleware('auth')->group(function () {
         Route::post('/students', [StudentController::class, 'webStore'])->name('entities.students.store');
         Route::get('/students/import', [StudentController::class, 'webImport'])->name('entities.students.import');
         Route::post('/students/import', [StudentController::class, 'webImportProcess'])->name('entities.students.import.process');
+        Route::get('/students/download-template', [StudentController::class, 'downloadTemplate'])->name('entities.students.download-template');
         Route::get('/students/{student}', [StudentController::class, 'webShow'])->name('entities.students.show');
         Route::get('/students/{student}/edit', [StudentController::class, 'webEdit'])->name('entities.students.edit');
         Route::put('/students/{student}', [StudentController::class, 'webUpdate'])->name('entities.students.update');

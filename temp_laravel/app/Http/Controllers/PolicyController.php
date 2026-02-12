@@ -7,6 +7,8 @@ use App\Models\Entity;
 use App\Models\PolicyEndorsement;
 use App\Models\Document;
 use App\Models\AuditLog;
+use App\Models\Student;
+use App\Models\StudentPolicyPremium;
 use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -280,13 +282,29 @@ class PolicyController extends Controller
         // Combine and sort all documents by upload date
         $allDocuments = $policyDocuments->merge($endorsementDocuments)->sortByDesc('uploaded_at');
 
+        // Calculate total premiums from student_policy_premiums
+        $totalPremiums = StudentPolicyPremium::where('policy_id', $policy->id)
+            ->selectRaw('SUM(CASE WHEN premium_type = \'ADDITION\' THEN final_premium ELSE 0 END) as total_additions')
+            ->selectRaw('SUM(CASE WHEN premium_type = \'REMOVAL\' THEN final_premium ELSE 0 END) as total_removals')
+            ->selectRaw('SUM(CASE WHEN premium_type = \'RENEWAL\' THEN final_premium ELSE 0 END) as total_renewals')
+            ->first();
+
+        $totalAdditions = $totalPremiums->total_additions ?? 0;
+        $totalRemovals = $totalPremiums->total_removals ?? 0;
+        $totalRenewals = $totalPremiums->total_renewals ?? 0;
+        $netPremium = $totalAdditions - $totalRemovals + $totalRenewals;
+
         return view('policies.show', compact(
             'policy',
             'activeEntities',
             'terminatedEntities',
             'allDocuments',
             'policyDocuments',
-            'endorsementDocuments'
+            'endorsementDocuments',
+            'totalAdditions',
+            'totalRemovals',
+            'totalRenewals',
+            'netPremium'
         ));
     }
 
@@ -495,6 +513,9 @@ class PolicyController extends Controller
         DB::transaction(function () use ($policy, $entityIds, &$addedCount, &$skippedCount) {
             $effectiveDate = now()->toDateString();
 
+            // Get student policy service for student premium calculation
+            $studentPolicyService = app(\App\Services\StudentPolicyService::class);
+
             foreach ($entityIds as $entityId) {
                 // Check if entity is already attached to this policy
                 if ($policy->entities()->where('entities.id', $entityId)->wherePivot('status', 'ACTIVE')->exists()) {
@@ -510,11 +531,62 @@ class PolicyController extends Controller
                     'status' => 'ACTIVE'
                 ]);
 
+                // If entity is a STUDENT, calculate and deduct premium
+                if ($entity->type === 'STUDENT') {
+                    $student = Student::where('id', $entity->entity_id)->first();
+
+                    if ($student) {
+                        // Calculate premium for this student
+                        $sumAssured = $student->sum_insured ?? 1000000; // Default ₹10,00,000
+                        $dateOfJoining = $student->date_of_joining ?? now()->format('Y-m-d');
+                        // Set date of exit to exactly one year from date of joining
+                        $dateOfExit = \Carbon\Carbon::parse($dateOfJoining)->addYear()->format('Y-m-d');
+
+                        $premiumBreakdown = $studentPolicyService->calculateStudentPremium(
+                            $sumAssured,
+                            $dateOfJoining,
+                            $dateOfExit
+                        );
+
+                        $premiumAmount = $premiumBreakdown['final_premium'];
+
+                        // Update policy utilized coverage pool
+                        $policy->utilized_coverage_pool = ($policy->utilized_coverage_pool ?? 0) + $premiumAmount;
+                        $policy->save();
+
+                        // Save premium record to database
+                        $studentPolicyService->saveStudentPremium(
+                            $student,
+                            $policy,
+                            null, // No endorsement yet, will be created below
+                            $premiumBreakdown,
+                            'ADDITION'
+                        );
+
+                        // Create audit log with premium details
+                        AuditLog::create([
+                            'action' => 'ADD_STUDENT',
+                            'entity_type' => 'Student',
+                            'entity_id' => $student->id,
+                            'policy_id' => $policy->id,
+                            'amount' => $premiumAmount,
+                            'transaction_type' => 'DEBIT',
+                            'balance_before' => $policy->utilized_coverage_pool - $premiumAmount,
+                            'balance_after' => $policy->utilized_coverage_pool,
+                            'metadata' => [
+                                'student_name' => $student->name,
+                                'premium_breakdown' => $premiumBreakdown,
+                            ],
+                            'performed_by' => Auth::id(),
+                        ]);
+                    }
+                }
+
                 // Create endorsement for adding entity
                 $endorsement = PolicyEndorsement::create([
                     'policy_id' => $policy->id,
                     'endorsement_number' => 'END-' . $policy->policy_number . '-ADD-' . $entityId . '-' . time(),
-                    'description' => 'Added ' . $entity->description . ' to group policy',
+                    'description' => 'Added ' . $entity->description . ' to group policy' . ($entity->type === 'STUDENT' ? ' with calculated premium' : ''),
                     'effective_date' => $effectiveDate,
                     'created_by' => Auth::id(),
                 ]);

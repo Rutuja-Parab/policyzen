@@ -58,14 +58,12 @@
                         <li><strong>email</strong> (optional) - Student's email address</li>
                         <li><strong>phone</strong> (optional) - Student's phone number</li>
                         <li><strong>dob</strong> or <strong>date_of_birth</strong> (optional) - Date of birth</li>
-                        <li><strong>age</strong> (optional) - Student's age (will be calculated from DOB if not provided)
-                        </li>
+                        <li><strong>age</strong> (optional) - Student's age</li>
                         <li><strong>gender</strong> (optional) - Student's gender</li>
                         <li><strong>rank</strong> (optional) - Student's rank</li>
                         <li><strong>batch</strong> (optional) - Student's batch</li>
-                        <li><strong>date_of_joining</strong> (optional) - Date of joining</li>
-                        <li><strong>date_of_exiting</strong> (optional) - Date of exiting</li>
-                        <li><strong>sum_insured</strong> (optional) - Sum insured amount</li>
+                        <li><strong>date_of_joining</strong> (optional) - Date of joining (format: YYYY-MM-DD)</li>
+                        <li><strong>sum_insured</strong> (optional) - Sum insured amount (e.g., 1000000 for ₹10,00,000)</li>
                         <li><strong>company_name</strong> or <strong>company</strong> (optional) - Company name (will use
                             selected company if not provided)</li>
                     </ul>
@@ -146,69 +144,90 @@
     </div>
 
     <!-- Sample CSV Format -->
-    <div class="bg-white rounded-lg shadow">
-        <div class="p-6">
-            <h3 class="text-lg font-medium text-gray-900 mb-4">Sample CSV Format</h3>
-            <div class="bg-gray-50 rounded-lg p-4 overflow-x-auto">
-                <table class="min-w-full text-sm">
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+        <div class="p-4 sm:p-6">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4">
+                <h3 class="text-lg font-medium text-gray-900">Sample CSV Format</h3>
+                <a href="{{ route('entities.students.download-template') }}"
+                    class="mt-2 sm:mt-0 inline-flex items-center px-3 py-2 border border-[#2b8bd0] text-sm leading-4 font-medium rounded-md text-[#2b8bd0] bg-blue-50 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#2b8bd0]">
+                    <i class="fas fa-download mr-2"></i>Download Sample CSV
+                </a>
+            </div>
+            <div class="bg-gray-50 rounded-lg overflow-x-auto">
+                <table class="min-w-full text-xs sm:text-sm">
                     <thead>
-                        <tr class="bg-gray-200">
-                            <th class="px-3 py-2 text-left">sr.no</th>
-                            <th class="px-3 py-2 text-left">student_id</th>
-                            <th class="px-3 py-2 text-left">name</th>
-                            <th class="px-3 py-2 text-left">email</th>
-                            <th class="px-3 py-2 text-left">phone</th>
-                            <th class="px-3 py-2 text-left">dob</th>
-                            <th class="px-3 py-2 text-left">age</th>
-                            <th class="px-3 py-2 text-left">gender</th>
-                            <th class="px-3 py-2 text-left">rank</th>
-                            <th class="px-3 py-2 text-left">batch</th>
-                            <th class="px-3 py-2 text-left">date_of_joining</th>
-                            <th class="px-3 py-2 text-left">date_of_exiting</th>
-                            <th class="px-3 py-2 text-left">sum_insured</th>
-                            <th class="px-3 py-2 text-left">company_name</th>
+                        <tr class="bg-gray-200 whitespace-nowrap">
+                            <th class="px-2 py-2 text-left">sr.no</th>
+                            <th class="px-2 py-2 text-left">student_id</th>
+                            <th class="px-2 py-2 text-left">name</th>
+                            <th class="px-2 py-2 text-left">email</th>
+                            <th class="px-2 py-2 text-left">phone</th>
+                            <th class="px-2 py-2 text-left">dob</th>
+                            <th class="px-2 py-2 text-left">age</th>
+                            <th class="px-2 py-2 text-left">gender</th>
+                            <th class="px-2 py-2 text-left">rank</th>
+                            <th class="px-2 py-2 text-left">batch</th>
+                            <th class="px-2 py-2 text-left">doj</th>
+                            <th class="px-2 py-2 text-left">sum_ins</th>
+                            <th class="px-2 py-2 text-left">company</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
-                            <td class="px-3 py-2">1</td>
-                            <td class="px-3 py-2">STU001</td>
-                            <td class="px-3 py-2">John Doe</td>
-                            <td class="px-3 py-2">john@example.com</td>
-                            <td class="px-3 py-2">1234567890</td>
-                            <td class="px-3 py-2">2000-01-15</td>
-                            <td class="px-3 py-2">24</td>
-                            <td class="px-3 py-2">Male</td>
-                            <td class="px-3 py-2">1</td>
-                            <td class="px-3 py-2">2024-2025</td>
-                            <td class="px-3 py-2">2024-01-01</td>
-                            <td class="px-3 py-2">2025-12-31</td>
-                            <td class="px-3 py-2">50000</td>
-                            <td class="px-3 py-2">ABC Company</td>
+                            <td class="px-2 py-2">1</td>
+                            <td class="px-2 py-2">STU001</td>
+                            <td class="px-2 py-2">John Doe</td>
+                            <td class="px-2 py-2">john@example.com</td>
+                            <td class="px-2 py-2">1234567890</td>
+                            <td class="px-2 py-2">2000-01-15</td>
+                            <td class="px-2 py-2">24</td>
+                            <td class="px-2 py-2">Male</td>
+                            <td class="px-2 py-2">1</td>
+                            <td class="px-2 py-2">2024-25</td>
+                            <td class="px-2 py-2">2024-01-01</td>
+                            <td class="px-2 py-2">1000000</td>
+                            <td class="px-2 py-2">ABC Co.</td>
                         </tr>
                         <tr class="bg-gray-50">
-                            <td class="px-3 py-2">2</td>
-                            <td class="px-3 py-2">STU002</td>
-                            <td class="px-3 py-2">Jane Smith</td>
-                            <td class="px-3 py-2">jane@example.com</td>
-                            <td class="px-3 py-2">0987654321</td>
-                            <td class="px-3 py-2">2001-05-20</td>
-                            <td class="px-3 py-2">23</td>
-                            <td class="px-3 py-2">Female</td>
-                            <td class="px-3 py-2">2</td>
-                            <td class="px-3 py-2">2024-2025</td>
-                            <td class="px-3 py-2">2024-01-01</td>
-                            <td class="px-3 py-2">2025-12-31</td>
-                            <td class="px-3 py-2">75000</td>
-                            <td class="px-3 py-2">XYZ Corporation</td>
+                            <td class="px-2 py-2">2</td>
+                            <td class="px-2 py-2">STU002</td>
+                            <td class="px-2 py-2">Jane Smith</td>
+                            <td class="px-2 py-2">jane@example.com</td>
+                            <td class="px-2 py-2">0987654321</td>
+                            <td class="px-2 py-2">2001-05-20</td>
+                            <td class="px-2 py-2">23</td>
+                            <td class="px-2 py-2">Female</td>
+                            <td class="px-2 py-2">2</td>
+                            <td class="px-2 py-2">2024-25</td>
+                            <td class="px-2 py-2">2024-01-01</td>
+                            <td class="px-2 py-2">1000000</td>
+                            <td class="px-2 py-2">XYZ Corp</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
+            <div class="mt-4 p-3 bg-blue-50 rounded text-xs sm:text-sm">
+                <p class="font-medium text-gray-700 mb-1"><i class="fas fa-info-circle mr-1"></i>Column Reference:</p>
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 text-gray-600">
+                    <span><strong>sr.no</strong> - Serial number</span>
+                    <span><strong>student_id</strong> - Student ID</span>
+                    <span><strong>name</strong> - Full name</span>
+                    <span><strong>email</strong> - Email address</span>
+                    <span><strong>phone</strong> - Phone number</span>
+                    <span><strong>dob</strong> - Date of birth</span>
+                    <span><strong>age</strong> - Age</span>
+                    <span><strong>gender</strong> - Gender</span>
+                    <span><strong>rank</strong> - Rank</span>
+                    <span><strong>batch</strong> - Batch</span>
+                    <span><strong>doj</strong> - Date of joining</span>
+                    <span><strong>sum_ins</strong> - Sum insured</span>
+                    <span><strong>company</strong> - Company name</span>
+                </div>
+            </div>
             <p class="mt-4 text-sm text-gray-600">
                 <i class="fas fa-info-circle mr-1"></i>
-                <strong>Note:</strong> The CSV file should have a header row. Column names are case-insensitive and can have
-                spaces, dashes, or underscores.
+                <strong>Note:</strong> Date of exiting will be set when student leaves the program.
+                Sum insured is used for insurance premium calculations.
             </p>
         </div>
     </div>
